@@ -22,6 +22,12 @@
 | [preflight-guideline.md](./preflight-guideline.md) | 배포와 시험 스크립트 | 실행 직전 | G-RELEASE |
 | [operation-guideline.md](./operation-guideline.md) | 사람 | 일회성 결정, 주기적 시험 | G-AUDIT (기록 확인만) |
 
+판정 기준이 되지 못하는 값은 따로 모아 둔다.
+
+| 문서 | 내용 |
+|------|------|
+| [pending-decisions.md](./pending-decisions.md) | 문서마다 다르게 적힌 값 4건, 아직 측정하지 않은 값 |
+
 ## 분류 기준
 
 | 질문 | 예 | 분류 |
