@@ -163,7 +163,7 @@ ConsumedLCUs      (미정) 초과
 
 | 값 | 현재 상태 |
 |------|-----------|
-| QueryDSL 채택 여부 | 기술 스택 **미확정**. Spring Boot 4 호환 미검증 |
+| QueryDSL 배포처와 버전 | **채택은 확정.** 본가와 OpenFeign 포크 중 스파이크가 정한다 |
 | springdoc-openapi 도입 | 기술 스택 **미확정**. Spring Boot 4 호환 미검증 |
 
 ```
@@ -174,6 +174,8 @@ ConsumedLCUs      (미정) 초과
 ```
 
 **착수 전에 30분이면 끝난다.** 미루면 되돌리기 어려워진다.
+
+QueryDSL 은 **쓰기로 정했고 남은 것은 배포처와 버전**이다. 둘 다 막히면 `Specification` 으로 전환한다.
 
 springdoc 도 같다. 엔드포인트 하나로 `/swagger-ui.html` 이 뜨는지 확인하면 된다.
 막히면 대안이 OpenAPI 명세를 손으로 쓰는 것뿐이라, **코드를 다 짠 뒤에 알면 되돌리기 어렵다.**
