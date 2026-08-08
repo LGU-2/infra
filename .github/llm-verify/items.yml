@@ -3,7 +3,7 @@
 # 생성 명령: gen_items.py <dir> '*-guideline.md' 'infra' 코드
 version: 1
 source: infra
-count: 106
+count: 96
 items:
   - {id: INF-1-01, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "배치 목록을 유형(멱등 전이형, 재계산형, 누적 연산형, 외부 부수효과형, 순번 발급형)으로 분류했는가"}
   - {id: INF-1-02, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "락 이름을 배치별로 분리했는가"}
@@ -48,16 +48,6 @@ items:
   - {id: INF-9-03, doc: code-guideline.md, ch: 9, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "로그가 stdout JSON이고 `traceId`가 MDC에 실리는가"}
   - {id: INF-9-04, doc: code-guideline.md, ch: 9, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "Loki 레이블에 식별자처럼 값 종류가 무한한 항목을 넣지 않았는가"}
   - {id: INF-9-05, doc: code-guideline.md, ch: 9, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "추적 샘플링 비율이 환경 변수로 주입되는가"}
-  - {id: INF-10-01, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "JaCoCo 대상이 `*.domain.service.*`로 좁혀져 있는가"}
-  - {id: INF-10-02, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "판정 단위가 클래스별(`element = 'CLASS'`), 카운터가 메서드(`counter = 'METHOD'`)인가"}
-  - {id: INF-10-03, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "기준이 `minimum = 1.00`인가"}
-  - {id: INF-10-04, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "단위 테스트와 통합 테스트의 `.exec`를 합산하는가"}
-  - {id: INF-10-05, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "`lombok.config`에 `lombok.addLombokGeneratedAnnotation = true`가 있는가"}
-  - {id: INF-10-06, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "`check`가 `integrationTest`와 `jacocoTestCoverageVerification`에 의존하는가"}
-  - {id: INF-10-07, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "`jacocoTestReport`가 `sonar` 태스크보다 먼저 도는가"}
-  - {id: INF-10-08, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "SonarQube Quality Gate에서 커버리지 조건을 제거했는가"}
-  - {id: INF-10-10, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "정적 분석 차단 조건이 신규 `Blocker` 이슈 0건인가"}
-  - {id: INF-10-09, doc: code-guideline.md, ch: 10, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "브랜치 보호의 필수 상태 검사에 두 게이트가 등록되어 있는가"}
   - {id: INF-11-01, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "응답에 넣는 이미지 URL 이 CloudFront 도메인인가"}
   - {id: INF-11-02, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "presigned URL 발급 전에 요청자의 권한을 확인하는가"}
   - {id: INF-11-03, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "업로드 키(저장 경로)를 서버가 정하는가"}
