@@ -3,7 +3,7 @@
 # 생성 명령: gen_items.py <dir> '*-guideline.md' 'infra' 코드
 version: 1
 source: infra
-count: 101
+count: 103
 items:
   - {id: INF-1-01, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "배치 목록을 유형(멱등 전이형, 재계산형, 누적 연산형, 외부 부수효과형, 순번 발급형)으로 분류했는가"}
   - {id: INF-1-02, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "락 이름을 배치별로 분리했는가"}
@@ -59,6 +59,8 @@ items:
   - {id: INF-11-09, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "이미지 조회 쿼리가 확정된 행만 고르는가"}
   - {id: INF-11-10, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "업로드 완료 통지에서 객체 존재와 서명 조건 일치를 S3 에 확인하는가"}
   - {id: INF-11-11, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "업로드 확정 요청에서 발급 건이 요청자와 대상 리소스에 속하는지 확인하는가"}
+  - {id: INF-11-12, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "조회 시점 확정을 두었다면 유효 창과 단건 조회로 한정했는가"}
+  - {id: INF-11-13, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "미확정 업로드를 정리하는 배치가 있고 S3 객체를 먼저 지우는가"}
   - {id: OPS-1-01, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "부하 시험에서 앱이 병목으로 확인되었는가"}
   - {id: OPS-1-02, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "`max_connections`가 목표 인스턴스 수를 수용하는가"}
   - {id: OPS-1-03, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "분산 락과 조건부 UPDATE가 구현되고 검증되었는가"}
