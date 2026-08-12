@@ -53,7 +53,7 @@ items:
   - {id: INF-11-03, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "업로드 키(저장 경로)를 서버가 정하는가"}
   - {id: INF-11-04, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "업로드 완료 통지에서 키를 클라이언트에게 받지 않는가"}
   - {id: INF-11-05, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "이미지 URL 을 통째로 저장하지 않고 키만 저장하는가"}
-  - {id: INF-11-06, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "서명 조건에 `Content-Type` 과 크기 상한이 포함되어 있는가"}
+  - {id: INF-11-06, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "발급 때 크기 상한을 검사하고 `Content-Type` 과 크기를 서명 조건에 넣는가"}
   - {id: INF-11-07, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "S3 접근에 액세스 키가 아니라 IAM 역할을 쓰는가"}
   - {id: INF-11-08, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "이미지 삭제가 S3 객체 삭제까지 이어지는가"}
   - {id: INF-11-09, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "이미지 조회 쿼리가 확정된 행만 고르는가"}
