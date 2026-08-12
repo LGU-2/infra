@@ -55,7 +55,7 @@ items:
   - {id: INF-11-05, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "이미지 URL 을 통째로 저장하지 않고 키만 저장하는가"}
   - {id: INF-11-06, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "발급 때 크기 상한을 검사하고 `Content-Type` 과 크기를 서명 조건에 넣는가"}
   - {id: INF-11-07, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "S3 접근에 액세스 키가 아니라 IAM 역할을 쓰는가"}
-  - {id: INF-11-08, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "이미지 삭제가 S3 객체 삭제까지 이어지는가"}
+  - {id: INF-11-08, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "이미지 삭제가 S3 객체 삭제까지 이어지고, 객체를 먼저 지우는가"}
   - {id: INF-11-09, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "이미지 조회 쿼리가 확정된 행만 고르는가"}
   - {id: INF-11-10, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "업로드 완료 통지에서 객체 존재와 서명 조건 일치를 S3 에 확인하는가"}
   - {id: INF-11-11, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "업로드 확정 요청에서 발급 건이 요청자와 대상 리소스에 속하는지 확인하는가"}
