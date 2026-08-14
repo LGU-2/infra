@@ -189,7 +189,7 @@ Spring REST Docs 를 버린 근거는 [be 의 tech-stack.md](https://github.com/
 | 알림 채널 | 이메일, Slack 등 |
 | 개발 서버 유무 | 상시 가동 시 월 28~52 USD 추가 |
 | 이중화 전환 시점 | `desired_capacity` 2로 상향. 월 22 USD 추가 |
-| 분산 락 최종 채택안 | 두 구현 비교 실험 후 |
+| 배치 주기와 실행 시각 | 배치 목록 확정 후 |
 | Terraform 마이너 버전 | 구축 시점 최신 안정 버전 |
 
 이미지 조회 방식은 **CloudFront + OAC 로 확정**했다 (2026-08-08).

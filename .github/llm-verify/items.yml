@@ -3,17 +3,15 @@
 # 생성 명령: gen_items.py <dir> '*-guideline.md' 'infra' 코드
 version: 1
 source: infra
-count: 103
+count: 98
 items:
   - {id: INF-1-01, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "배치 목록을 유형(멱등 전이형, 재계산형, 누적 연산형, 외부 부수효과형, 순번 발급형)으로 분류했는가"}
-  - {id: INF-1-02, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "락 이름을 배치별로 분리했는가"}
-  - {id: INF-1-03, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "TTL이 배치 주기보다 짧은가"}
   - {id: INF-1-04, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "상태 전이가 조건부 UPDATE인가"}
   - {id: INF-1-05, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "누적 연산이 전이 성공에 종속되는가"}
   - {id: INF-1-06, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "외부 호출 전에 상태를 선점하는가"}
-  - {id: INF-1-07, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "락 획득 트랜잭션이 작업 트랜잭션과 분리됐는가"}
-  - {id: INF-1-08, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "`SELECT ... FOR UPDATE`로 락을 구현하지 않았는가"}
   - {id: INF-1-09, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "시각 기준을 애플리케이션 `Clock`으로 통일했는가"}
+  - {id: INF-1-10, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "스케줄러 설정이 `batch` 프로필로 감싸여 있는가"}
+  - {id: INF-1-11, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "배치 시작 로그에 `job_name`, `scheduled_at`, `instance_id`를 남기는가"}
   - {id: INF-2-01, doc: code-guideline.md, ch: 2, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "종료 신호를 받으면 새 배치를 시작하지 않는가"}
   - {id: INF-2-02, doc: code-guideline.md, ch: 2, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "진행 중인 배치가 끝날 때까지 기다린 뒤 훅에 완료 신호를 보내는가"}
   - {id: INF-2-03, doc: code-guideline.md, ch: 2, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "훅이 실패해도 조건부 UPDATE 방어가 남아 있는가"}
@@ -63,12 +61,11 @@ items:
   - {id: INF-11-13, doc: code-guideline.md, ch: 11, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "미확정 업로드를 정리하는 배치가 있고 S3 객체를 먼저 지우는가"}
   - {id: OPS-1-01, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "부하 시험에서 앱이 병목으로 확인되었는가"}
   - {id: OPS-1-02, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "`max_connections`가 목표 인스턴스 수를 수용하는가"}
-  - {id: OPS-1-03, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "분산 락과 조건부 UPDATE가 구현되고 검증되었는가"}
+  - {id: OPS-1-03, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "조건부 UPDATE가 구현되고 검증되었는가"}
   - {id: OPS-1-04, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "수명주기 훅이 구현되었는가"}
   - {id: OPS-1-05, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "인스턴스 기동 시간이 대응 가능한 수준인가"}
   - {id: OPS-1-06, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "최대 인스턴스 수 상한이 예산 안에 있는가"}
   - {id: OPS-1-07, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "RDS `max_connections`가 배포 중 30을 수용하는가"}
-  - {id: OPS-1-08, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "분산 락이 구현되어 실제로 동작하는가"}
   - {id: OPS-1-09, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "조건부 UPDATE가 모든 누적 연산에 적용되었는가"}
   - {id: OPS-1-10, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "배포 절차에 인스턴스 수를 하드코딩한 곳이 없는가"}
   - {id: OPS-1-11, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "RDS `max_connections`를 실측했는가"}
@@ -93,8 +90,6 @@ items:
   - {id: OPS-2-16, doc: operation-guideline.md, ch: 2, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "**정합성 검증 실패 알람을 테스트 데이터로 발동시켜 확인했는가**"}
   - {id: OPS-2-17, doc: operation-guideline.md, ch: 2, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "알람 메시지에 오차 건수, 최대 오차, 최근 변경 시각과 주체가 포함되는가"}
   - {id: OPS-2-18, doc: operation-guideline.md, ch: 2, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "설정을 Git으로 변경 후 reload로 반영되고 인스턴스 재생성 후에도 유지되는가"}
-  - {id: OPS-2-19, doc: operation-guideline.md, ch: 2, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "각 조합(구현 2가지 x 시나리오 7가지)을 3회 반복해 재현성을 확인했는가"}
-  - {id: OPS-2-20, doc: operation-guideline.md, ch: 2, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "중복 실행이 발생한 시나리오에서도 데이터 손상이 0건인가"}
   - {id: PRE-1-01, doc: preflight-guideline.md, ch: 1, level: 실행전, gate: G-RELEASE, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "RDS가 `available`인가"}
   - {id: PRE-1-02, doc: preflight-guideline.md, ch: 1, level: 실행전, gate: G-RELEASE, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "ElastiCache가 `available`인가"}
   - {id: PRE-1-03, doc: preflight-guideline.md, ch: 1, level: 실행전, gate: G-RELEASE, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "모니터링 인스턴스가 `running`이고 Prometheus가 응답하는가"}
