@@ -10,7 +10,7 @@
 
 이 디렉터리는 그중 판정 가능한 것만 뽑아 형식을 통일한다.
 **system-design 문서는 수정하지 않는다.** 저쪽이 rationale, 이쪽이 guideline 역할이다.
-`LGU-2/backend`의 `docs/code-architecture/`가 guideline과 rationale을 짝지은 것과 같은 구조다.
+`fresh-market/fm-backend`의 `docs/code-architecture/`가 guideline과 rationale을 짝지은 것과 같은 구조다.
 
 ## 문서 구성
 
@@ -40,7 +40,7 @@
 
 ## 판정 대상이 이 저장소에만 있지 않다
 
-`code-guideline.md`의 항목 대부분은 **`LGU-2/backend`의 코드가 판정 대상**이다.
+`code-guideline.md`의 항목 대부분은 **`fresh-market/fm-backend`의 코드가 판정 대상**이다.
 인프라 결정이 애플리케이션 코드에 부과하는 제약이기 때문이다.
 
 ```
@@ -57,9 +57,9 @@ Terraform 구성이 만들어지면 그때 `code-guideline.md`에 인프라 코�
 
 | 저장소 | 다루는 것 |
 |--------|-----------|
-| `LGU-2/.github` | 일반 품질 속성. "얼마나 잘 하는가" (성능, 신뢰성, 보안 등 217건) |
-| `LGU-2/backend` | 코드 관용과 패턴. "어떻게 쓰는가" (250건) |
-| **`LGU-2/infra`** | **이 인프라의 확정 결정이 코드에 부과하는 제약** |
+| `fresh-market/.github` | 일반 품질 속성. "얼마나 잘 하는가" (성능, 신뢰성, 보안 등 217건) |
+| `fresh-market/fm-backend` | 코드 관용과 패턴. "어떻게 쓰는가" (250건) |
+| **`fresh-market/fm-infra`** | **이 인프라의 확정 결정이 코드에 부과하는 제약** |
 
 겹칠 때의 소유 기준은 **더 구체적이고 근거가 강한 쪽**이다.
 
@@ -84,7 +84,7 @@ Terraform 구성이 만들어지면 그때 `code-guideline.md`에 인프라 코�
 | 락 획득과 작업 트랜잭션 분리 | `INF-1-07` | `DI-4-03` 트랜잭션이 필요 이상으로 길지 않은가 |
 | 스케일 인 시 배치 중단 방지 | `INF-2-01`, `INF-2-02` | `FLX-2-01` 스케줄러 중복 실행 방지 |
 
-이 관계는 `LGU-2/.github`의 `items.yml`에 `defers_to` 필드로 기계 판독 가능하게 기록되어 있다.
+이 관계는 `fresh-market/.github`의 `items.yml`에 `defers_to` 필드로 기계 판독 가능하게 기록되어 있다.
 
 ```yaml
 - {id: DI-2-01, ..., defers_to: [INF-1-04, INF-1-05], title: "갱신 손실 ..."}

@@ -18,7 +18,7 @@
 
 ## 1. 어긋난 값
 
-네 건이다. 게이트는 이것들을 `LGU-2/.github`의 `.github/llm-verify/known-conflicts.yml`에 `unresolved`로 등록해 두고, 관련 항목을 `CONFLICTING_BASELINE`으로 유보한다.
+네 건이다. 게이트는 이것들을 `fresh-market/.github`의 `.github/llm-verify/known-conflicts.yml`에 `unresolved`로 등록해 두고, 관련 항목을 `CONFLICTING_BASELINE`으로 유보한다.
 **한쪽을 골라 판정하지 않는다.** 그건 LLM이 팀의 결정을 대신 내리는 것이다.
 
 정하면 `known-conflicts.yml`에서 해당 항목을 `resolved`로 바꾸거나 지운다.
@@ -179,7 +179,7 @@ QueryDSL 은 **채택이 확정됐고 버전도 BOM 이 관리한다**(5.1.0). �
 
 springdoc 도 같다. 엔드포인트 하나로 `/swagger-ui.html` 이 뜨는지 확인하면 된다.
 막히면 대안이 OpenAPI 명세를 손으로 쓰는 것뿐이라, **코드를 다 짠 뒤에 알면 되돌리기 어렵다.**
-Spring REST Docs 를 버린 근거는 [be 의 tech-stack.md](https://github.com/LGU-2/be/blob/main/docs/tech-stack.md) 4장에 있다.
+Spring REST Docs 를 버린 근거는 [be 의 tech-stack.md](https://github.com/fresh-market/fm-backend/blob/main/docs/tech-stack.md) 4장에 있다.
 
 ### 2.5 아직 고르지 않은 것 (측정 불필요, 선택의 문제)
 
@@ -224,4 +224,4 @@ Spring REST Docs 를 버린 근거는 [be 의 tech-stack.md](https://github.com/
 * 근거: `docs/system-design/`
 * PR 단위 점검: [code-guideline.md](./code-guideline.md)
 * 사람이 판단하고 수행하는 것: [operation-guideline.md](./operation-guideline.md)
-* 모순 목록(기계 판독): `LGU-2/.github`의 `.github/llm-verify/known-conflicts.yml`
+* 모순 목록(기계 판독): `fresh-market/.github`의 `.github/llm-verify/known-conflicts.yml`

@@ -5,7 +5,7 @@
 # 문서에는 있으니 사람 눈에는 정상으로 보이고, 게이트는 items.yml 만 보므로
 # 새 점검 항목이 영원히 판정되지 않는다.
 #
-# 생성기는 LGU-2/.github 에 있어 함께 체크아웃한다.
+# 생성기는 fresh-market/.github 에 있어 함께 체크아웃한다.
 # 이 검사는 결정론적이라 오탐이 없다. 그래서 LLM 게이트와 달리 차단해도 된다.
 
 name: 레지스트리 검사
@@ -27,7 +27,7 @@ jobs:
       - name: 생성기
         uses: actions/checkout@v4
         with:
-          repository: LGU-2/.github
+          repository: fresh-market/.github
           path: common
 
       - uses: actions/setup-python@v5

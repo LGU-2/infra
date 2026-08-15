@@ -3,7 +3,7 @@
 이 문서는 `docs/system-design/`의 설계 결정 중 **애플리케이션 코드와 설정으로 지켜야 하는 것**을 코드 리뷰 점검 항목으로 정리한 가이드다.
 배치 스케줄러, 애플리케이션 설정, 스키마 마이그레이션이 포함되거나 변경되는 PR에 적용한다.
 
-판정 대상은 대부분 `LGU-2/backend`의 코드다. 인프라 결정이 코드에 부과하는 제약이기 때문이다.
+판정 대상은 대부분 `fresh-market/fm-backend`의 코드다. 인프라 결정이 코드에 부과하는 제약이기 때문이다.
 각 항목의 근거는 `docs/system-design/`의 해당 문서에 있으며, 항목마다 출처를 표기했다.
 
 > **이 문서는 system-design 문서를 대체하지 않는다.**
@@ -167,9 +167,9 @@ ASG가 인스턴스를 교체할 때 시작 템플릿의 태그가 고정되어 
 
 ## 10. 빌드 게이트
 
-점검 항목과 근거를 **`LGU-2/be` 가 소유한다.** 판정 대상이 그 저장소의 `build.gradle` 이다.
+점검 항목과 근거를 **`fresh-market/fm-backend` 가 소유한다.** 판정 대상이 그 저장소의 `build.gradle` 이다.
 
-[be 의 build-gate-guideline.md](https://github.com/LGU-2/be/blob/main/docs/code-architecture/build-gate-guideline.md)
+[be 의 build-gate-guideline.md](https://github.com/fresh-market/fm-backend/blob/main/docs/code-architecture/build-gate-guideline.md)
 
 커버리지(service 패키지 메서드 100%)와 정적 분석(신규 `Blocker` 0건)이 **병합을 차단한다.**
 이 문서의 다른 항목과 달리 LLM 이 아니라 도구가 판정한다.
@@ -243,7 +243,7 @@ ASG가 인스턴스를 교체할 때 시작 템플릿의 태그가 고정되어 
   대상 조회가 상태와 생성 시각 복합 인덱스를 타는지 본다. 없으면 매 주기 풀스캔이다.
   `INF-1-01`의 외부 부수효과형이므로 1장의 락 항목이 모두 적용된다.
 
-`INF-11-06`는 `LGU-2/.github`의 `SEC-3-04`(파일 업로드에서 확장자, MIME 타입, 크기, 저장 경로를 검증하는가)와 겹친다.
+`INF-11-06`는 `fresh-market/.github`의 `SEC-3-04`(파일 업로드에서 확장자, MIME 타입, 크기, 저장 경로를 검증하는가)와 겹친다.
 **업로드가 앱을 거치지 않는다는 이 인프라의 조건 때문에 검증 지점이 서명 시점으로 옮겨진 것이므로 여기가 더 구체적이다.**
 
 `INF-11-11`은 `SEC-1-02`(검증을 클라이언트가 보낸 식별자가 아니라 인증 주체 기준으로 하는가)의 이미지 흐름 적용이다.
@@ -258,5 +258,5 @@ ASG가 인스턴스를 교체할 때 시작 템플릿의 태그가 고정되어 
 * 근거와 확정값: `docs/system-design/`
 * 실행 전 자동 점검: [preflight-guideline.md](./preflight-guideline.md)
 * 도입 판정과 검증 계획: [operation-guideline.md](./operation-guideline.md)
-* 일반 품질 속성 점검: `LGU-2/.github`의 `docs/software-quality/`
-* 코드 관용과 패턴: `LGU-2/backend`의 `docs/code-architecture/`
+* 일반 품질 속성 점검: `fresh-market/.github`의 `docs/software-quality/`
+* 코드 관용과 패턴: `fresh-market/fm-backend`의 `docs/code-architecture/`

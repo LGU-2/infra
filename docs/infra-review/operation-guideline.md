@@ -117,7 +117,7 @@ LLM 게이트가 할 수 있는 것은 그 결정과 시험의 **기록이 있�
 | "그 기록이 성실한가" | 불가 |
 
 따라서 이 문서의 항목은 G-AUDIT이 주기별로 **기록 누락**만 검출한다.
-주기는 `LGU-2/.github`의 `qa-llm-verification.md` 2.5절을 따른다.
+주기는 `fresh-market/.github`의 `qa-llm-verification.md` 2.5절을 따른다.
 
 ## 4. 관련 문서
 
