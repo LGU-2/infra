@@ -18,6 +18,11 @@ version: 1
 source: infra
 
 defaults:
+  # 판정 대상으로 치는 것. backend 와 달리 여기서는 문서가 판정 대상이다.
+  code_globs:
+    - "docs/**"
+    - ".github/**"
+    - "verify.sh"
   # 어떤 규칙도 걸리지 않으면 운영 항목만 켠다
   on_no_match:
     activate:
