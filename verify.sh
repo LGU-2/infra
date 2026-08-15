@@ -5,9 +5,10 @@
 # 본체를 여기 두지 않는 이유는 세 저장소가 같은 절차를 써야 하기 때문이다.
 # 복사하면 갈라진다.
 #
-#   ./verify.sh                      계산하고 판정 지시문을 낸다
+#   ./verify.sh                      전체. 아직 push 하지 않은 커밋 전부
+#   ./verify.sh HEAD                 최신 커밋 1개
+#   ./verify.sh HEAD~5               최신 커밋 5개
 #   ./verify.sh --agent claude       지시문을 그 명령에 넘긴다
-#   ./verify.sh HEAD~5               범위를 지정한다
 #   ./verify.sh --help               나머지 사용법
 
 set -u
