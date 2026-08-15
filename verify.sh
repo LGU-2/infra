@@ -6,8 +6,9 @@
 # 복사하면 갈라진다.
 #
 #   ./verify.sh                      전체. 아직 push 하지 않은 커밋 전부
-#   ./verify.sh HEAD                 최신 커밋 1개
-#   ./verify.sh HEAD~5               최신 커밋 5개
+#   ./verify.sh HEAD                 HEAD 커밋 하나
+#   ./verify.sh <SHA>                그 커밋 하나
+#   ./verify.sh -n 5                 최신 5개
 #   ./verify.sh --agent claude       지시문을 그 명령에 넘긴다
 #   ./verify.sh --help               나머지 사용법
 
