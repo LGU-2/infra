@@ -69,6 +69,8 @@ rules:
     anchors:
       - ".github/llm-verify/items.yml"
     activate:
-      prefixes: [OPS, PRE, MNT]
+      # MNT 를 넣지 않는다. MNT-5-* 는 빌드에 포맷터와 정적 분석이 걸렸는지를 묻는데
+      # 이 저장소에는 빌드가 없어 매번 NOT_APPLICABLE 이 된다. 그 판정은 backend 가 맡는다.
+      prefixes: [OPS, PRE]
       levels: [운영, 실행전]
     needs_baseline_values: false
