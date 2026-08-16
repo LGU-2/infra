@@ -1,0 +1,24 @@
+### OS ###
+.DS_Store
+
+### IDE ###
+.idea/
+.vscode/
+*.iml
+
+### Editor ###
+*.swp
+*.swo
+*~
+
+### 사람마다 다른 값 ###
+.env
+.env.*
+!.env.example
+
+### 비밀 ###
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
