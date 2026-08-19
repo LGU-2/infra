@@ -147,7 +147,7 @@ ConsumedLCUs      (미정) 초과
 
 | 값 | 어떻게 구하는가 | 왜 급한가 |
 |------|-----------------|-----------|
-| RDS `max_connections` | `SHOW VARIABLES LIKE 'max_connections'` | **커넥션 풀 크기와 인스턴스 상한의 전제다.** 지금 계산이 전부 가정 위에 있다 |
+| RDS `max_connections` | `SHOW VARIABLES LIKE 'max_connections'` | 공식에서 약 60으로 예측해 풀 크기와 상한 계산은 풀렸다. **남은 것은 실측 확인뿐이다** |
 
 **부하 시험이 필요 없다.** 콘솔에서 1분이면 확인된다. 2번 부류 중 유일하게 지금 할 수 있는 것이다.
 
