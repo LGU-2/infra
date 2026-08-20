@@ -45,7 +45,6 @@ rules:
     activate:
       prefixes: [INF, OPS, PRE, REL, PERF, OBS, CMP, TRD]
       levels: [설계, 운영, 실행전]
-    needs_baseline_values: true
 
   # 점검 항목의 원본. 문서를 고치면 items.yml 을 다시 생성해야 한다.
   - id: guideline
@@ -58,7 +57,6 @@ rules:
     activate:
       prefixes: [INF, OPS, PRE, TRD, MNT]
       levels: [코드, 설계, 운영, 실행전]
-    needs_baseline_values: false
 
   # 워크플로와 스크립트. 게이트 자체가 바뀌는 자리다.
   - id: workflow
@@ -73,4 +71,3 @@ rules:
       # 이 저장소에는 빌드가 없어 매번 NOT_APPLICABLE 이 된다. 그 판정은 backend 가 맡는다.
       prefixes: [OPS, PRE]
       levels: [운영, 실행전]
-    needs_baseline_values: false
