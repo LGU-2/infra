@@ -191,3 +191,13 @@ variable "media_cors_origins" {
   type        = list(string)
   default     = ["*"]
 }
+
+/*
+ * 월 예산. 기술 스택 확정 문서 5.2절의 추정 총액이 근거다.
+ * 프리 티어 크레딧으로 도는 동안에도 소진 속도를 봐야 하므로 값을 둔다.
+ */
+variable "monthly_budget_usd" {
+  description = "월 예산 상한. 50, 80, 100% 와 예측 100% 에서 알린다"
+  type        = string
+  default     = "140"
+}

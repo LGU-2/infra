@@ -143,3 +143,82 @@ resource "aws_db_event_subscription" "failover" {
  * LatestRestorableTime 이 몇 분 이상 밀리면 이상인지를 정하려면 정상 구간의 값을 먼저 봐야 한다.
  * 문서 10.1절이 (미정) 으로 남겨 둔 항목이다. 지어내지 않는다.
  */
+
+/*
+ * 예산 초과 알림 (기술 스택 확정 문서 5.5절).
+ * 무료다. AWS Budgets 는 계정당 두 개까지 요금이 없다.
+ *
+ * 알람과 다른 축을 본다.
+ * CloudWatch 알람은 "지금 고장났는가" 를, 예산은 "이대로 가면 돈이 얼마나 나가는가" 를 본다.
+ */
+
+resource "aws_budgets_budget" "monthly" {
+  name         = "${var.project}-monthly"
+  budget_type  = "COST"
+  limit_amount = var.monthly_budget_usd
+  limit_unit   = "USD"
+  time_unit    = "MONTHLY"
+
+  # 이미 쓴 금액이 절반을 넘었다. 아직 조치할 시간이 있다.
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 50
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "ACTUAL"
+    subscriber_sns_topic_arns  = [aws_sns_topic.critical.arn]
+    subscriber_email_addresses = var.alert_email != "" ? [var.alert_email] : []
+  }
+
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 80
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "ACTUAL"
+    subscriber_sns_topic_arns  = [aws_sns_topic.critical.arn]
+    subscriber_email_addresses = var.alert_email != "" ? [var.alert_email] : []
+  }
+
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 100
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "ACTUAL"
+    subscriber_sns_topic_arns  = [aws_sns_topic.critical.arn]
+    subscriber_email_addresses = var.alert_email != "" ? [var.alert_email] : []
+  }
+
+  /*
+   * 실제 지출이 아니라 예측치를 본다.
+   * 실제가 100% 를 넘었을 때는 이미 늦다. 이번 달 끝에 얼마가 될지를 미리 알린다.
+   */
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 100
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "FORECASTED"
+    subscriber_sns_topic_arns  = [aws_sns_topic.critical.arn]
+    subscriber_email_addresses = var.alert_email != "" ? [var.alert_email] : []
+  }
+}
+
+/*
+ * SNS 주제가 예산 알림을 받으려면 budgets 서비스에 게시 권한을 줘야 한다.
+ * 이것이 없으면 예산은 만들어지는데 알림이 조용히 안 온다.
+ */
+data "aws_iam_policy_document" "sns_budgets" {
+  statement {
+    effect    = "Allow"
+    actions   = ["SNS:Publish"]
+    resources = [aws_sns_topic.critical.arn]
+
+    principals {
+      type        = "Service"
+      identifiers = ["budgets.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_sns_topic_policy" "critical" {
+  arn    = aws_sns_topic.critical.arn
+  policy = data.aws_iam_policy_document.sns_budgets.json
+}
