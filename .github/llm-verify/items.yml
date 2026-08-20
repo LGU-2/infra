@@ -65,7 +65,7 @@ items:
   - {id: OPS-1-04, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "수명주기 훅이 구현되었는가"}
   - {id: OPS-1-05, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "인스턴스 기동 시간이 대응 가능한 수준인가", criteria: "5분이면 급격한 트래픽 증가에는 사실상 무력하다."}
   - {id: OPS-1-06, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "최대 인스턴스 수 상한이 예산 안에 있는가", criteria: "오토스케일링은 비용 상한을 없앤다."}
-  - {id: OPS-1-07, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "RDS `max_connections`가 배포 중 30을 수용하는가"}
+  - {id: OPS-1-07, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "RDS `max_connections`가 배포 중 45를 수용하는가", criteria: "앱 2대 20에 배치 인스턴스 10과 관리 커넥션을 더한 값이다. 앱만 세면 30으로 보여 여유를 과대평가한다."}
   - {id: OPS-1-09, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "조건부 UPDATE가 모든 누적 연산에 적용되었는가"}
   - {id: OPS-1-10, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "배포 절차에 인스턴스 수를 하드코딩한 곳이 없는가"}
   - {id: OPS-1-11, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "RDS `max_connections`를 실측했는가", criteria: "이중화와 오토스케일링 상한의 전제다."}
