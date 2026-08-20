@@ -160,27 +160,23 @@ ConsumedLCUs      (미정) 초과
 
 `OPS-1-12`가 이것을 점검한다.
 
-### 2.4 스파이크가 있어야 정해지는 것
+### 2.4 스파이크로 해소된 것
 
-| 값 | 현재 상태 |
+둘 다 착수 전 스파이크 대상이었고 **지금은 확정이다.** 코드에 들어가 `./gradlew check` 가 도는 것으로 확인됐다.
+
+| 값 | 결과 |
 |------|-----------|
-| springdoc-openapi 도입 | 기술 스택 **미확정**. Spring Boot 4 호환 미검증 |
+| springdoc-openapi 도입 | **확정. 3.0.3** (Boot 4.0.5 로 빌드된 버전). `build.gradle:79` |
+| QueryDSL APT 동작 | **확정. 5.1.0** (BOM 관리). `build.gradle:85`, `ProductQueryRepository` 가 사용 중 |
+
+**springdoc 만 계속 확인이 필요하다.** Boot 의 BOM 이 관리하지 않는 의존성이라 버전을 직접 박아야 하고, Boot 를 올릴 때마다 호환 버전을 다시 봐야 한다.
 
 ```
-착수 전에 스파이크로 검증한다. 엔티티 하나에 Q클래스를 생성하고
-조인이 포함된 쿼리를 실행하면 30분 안에 판별된다.
-여기서 막히면 대안을 택해야 하는데, 코드를 다 짠 뒤에 알면 되돌리기 어렵다.
-                                        -- be 의 tech-stack.md 3장
+springdoc 3.0.3  ->  Boot 4.0.5   <- 채택
+springdoc 3.1.0  ->  Boot 4.1.0
 ```
 
-**착수 전에 30분이면 끝난다.** 미루면 되돌리기 어려워진다.
-
-QueryDSL 은 **채택이 확정됐고 버전도 BOM 이 관리한다**(5.1.0). 남은 것은 APT 가 도는지 확인하는 것뿐이다.
-막히면 `Specification` 으로 전환한다.
-
-springdoc 도 같다. 엔드포인트 하나로 `/swagger-ui.html` 이 뜨는지 확인하면 된다.
-막히면 대안이 OpenAPI 명세를 손으로 쓰는 것뿐이라, **코드를 다 짠 뒤에 알면 되돌리기 어렵다.**
-Spring REST Docs 를 버린 근거는 [be 의 tech-stack.md](https://github.com/fresh-market/fm-backend/blob/main/docs/tech-stack.md) 4장에 있다.
+확인 방법은 springdoc 의 `pom.xml` 이 어떤 `spring-boot-starter-parent` 를 상속하는지 보는 것이다. Spring REST Docs 를 버린 근거는 [be 의 tech-stack.md](https://github.com/fresh-market/fm-backend/blob/main/docs/tech-stack.md) 4장에 있다.
 
 ### 2.5 아직 고르지 않은 것 (측정 불필요, 선택의 문제)
 
@@ -214,11 +210,12 @@ Spring REST Docs 를 버린 근거는 [be 의 tech-stack.md](https://github.com/
 | 1 | 1.1 readiness | 문서 한 줄 | 전 인스턴스 동시 이탈 위험, 게이트 기능 하나 |
 | 2 | 1.4 혼재 구간 | 결정 하나 | 스키마 축소 시점 |
 | 3 | 2.2 `max_connections` | 조회 1분 | 풀 크기 계산 전체 |
-| 4 | 2.4 QueryDSL 스파이크 | 30분 | 착수 후에는 되돌리기 어려움 |
-| 5 | 1.2, 1.3 | 문서 두 줄 | 시험 계획, 롤백 판단 |
-| 6 | 2.1 부하 시험 | 시험 1회 | 오토스케일링, 알람 임계값 |
+| 4 | 1.2, 1.3 | 문서 두 줄 | 시험 계획, 롤백 판단 |
+| 5 | 2.1 부하 시험 | 시험 1회 | 오토스케일링, 알람 임계값 |
 
-**1~5는 전부 하루 안에 끝난다.** 부하 시험만 별도 일정이 필요하다.
+**1~4는 전부 하루 안에 끝난다.** 부하 시험만 별도 일정이 필요하다.
+
+2.4 의 스파이크 두 건(springdoc, QueryDSL)은 해소되어 목록에서 뺐다.
 
 ## 관련 문서
 
