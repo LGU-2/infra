@@ -53,9 +53,16 @@ resource "aws_db_parameter_group" "main" {
 }
 
 resource "aws_db_instance" "main" {
-  identifier     = "${var.project}-db"
-  engine         = "mysql"
-  engine_version = "8.4"
+  identifier = "${var.project}-db"
+  engine     = "mysql"
+
+  /*
+   * 마이너까지 박는다. auto_minor_version_upgrade 를 껐으므로 여기가 유일한 출처다.
+   * 2026-08-20 조회 기준 8.4 라인의 최신이고 db.t4g.micro 와 gp3 를 지원한다.
+   * aws rds describe-db-engine-versions --engine mysql --engine-version 8.4
+   */
+  engine_version = "8.4.11"
+
   instance_class = var.db_instance_class
 
   db_name  = var.db_name

@@ -61,8 +61,12 @@ resource "aws_elasticache_replication_group" "main" {
   maintenance_window       = "sun:20:30-sun:21:30"
   snapshot_retention_limit = 0
 
-  # 엔진 마이너 버전은 유지보수 창에 AWS 가 올린다.
-  auto_minor_version_upgrade = true
+  /*
+   * 9.0 에서 9.1 로 올라가지 못하게 한다.
+   * 기술 스택 3.2절이 "9-alpine 을 쓰면 안 된다. 그 태그는 9.1 로 풀린다" 고 못 박았다.
+   * 로컬 이미지를 9.0 으로 고정해 두고 운영만 올라가면 동작이 갈린다.
+   */
+  auto_minor_version_upgrade = false
 
   tags = {
     Name = "${var.project}-cache"
