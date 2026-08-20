@@ -30,7 +30,7 @@
 
 ```
 ALB (2 AZ)
- +--> app-1 (EC2, Docker, AZ-a)        <- 현재 1대
+ +--> app-1 (EC2, Docker)              <- 현재 1대. AZ 는 ASG 가 고른다
           |
           +--> RDS MySQL 8.4 Multi-AZ (writer 엔드포인트 하나)
 ```

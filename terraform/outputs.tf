@@ -1,0 +1,65 @@
+# 배포 스크립트와 preflight 스크립트가 이 값들을 읽는다.
+
+output "vpc_id" {
+  description = "VPC ID"
+  value       = aws_vpc.main.id
+}
+
+output "public_subnet_ids" {
+  description = "퍼블릭 서브넷 ID. ASG 와 인스턴스가 쓴다"
+  value       = { for k, s in aws_subnet.public : k => s.id }
+}
+
+output "private_subnet_ids" {
+  description = "프라이빗 서브넷 ID. RDS 와 캐시 서브넷 그룹이 쓴다"
+  value       = { for k, s in aws_subnet.private : k => s.id }
+}
+
+output "security_group_ids" {
+  description = "역할별 보안 그룹 ID"
+
+  value = {
+    alb   = aws_security_group.alb.id
+    app   = aws_security_group.app.id
+    db    = aws_security_group.db.id
+    cache = aws_security_group.cache.id
+    mon   = aws_security_group.mon.id
+    batch = aws_security_group.batch.id
+    lt    = aws_security_group.lt.id
+  }
+}
+
+output "db_endpoint" {
+  description = "SSM db-endpoint 파라미터에 넣을 값"
+  value       = aws_db_instance.main.address
+}
+
+output "cache_endpoint" {
+  description = "앱이 접속할 캐시 주소"
+  value       = aws_elasticache_replication_group.main.primary_endpoint_address
+}
+
+output "alb_dns_name" {
+  description = "도메인이 없을 때 접속할 주소"
+  value       = aws_lb.main.dns_name
+}
+
+output "asg_name" {
+  description = "배포 스크립트가 desired 를 조절할 대상"
+  value       = aws_autoscaling_group.app.name
+}
+
+output "target_group_arn" {
+  description = "배포 스크립트가 healthy 수를 확인할 대상"
+  value       = aws_lb_target_group.app.arn
+}
+
+output "media_bucket" {
+  description = "이미지 버킷 이름"
+  value       = aws_s3_bucket.media.id
+}
+
+output "cdn_domain" {
+  description = "앱의 cdn.base-url 에 넣을 값"
+  value       = aws_cloudfront_distribution.media.domain_name
+}

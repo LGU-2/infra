@@ -1,0 +1,35 @@
+#!/bin/bash
+${common_bootstrap}
+
+# 어느 버전을 띄울지는 SSM 이 정한다 (INF-25).
+# 시작 템플릿에 태그를 박으면 ASG 교체 시 최초 구축 버전이 올라온다.
+GIT_SHA=$(aws ssm get-parameter --name "/${project}/current-sha" --region ${region} --query 'Parameter.Value' --output text)
+DB_ENDPOINT=$(aws ssm get-parameter --name "/${project}/db-endpoint" --region ${region} --query 'Parameter.Value' --output text)
+DB_PASSWORD=$(aws ssm get-parameter --name "/${project}/db-password" --region ${region} --with-decryption --query 'Parameter.Value' --output text)
+LOKI_ENDPOINT=$(aws ssm get-parameter --name "/${project}/loki-endpoint" --region ${region} --query 'Parameter.Value' --output text)
+INSTANCE_ID=$(curl -fsS -H "X-aws-ec2-metadata-token: $(curl -fsS -X PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 60')" http://169.254.169.254/latest/meta-data/instance-id)
+
+mkdir -p /opt/${project}
+cat > /opt/${project}/.env <<ENV
+GIT_SHA=$GIT_SHA
+LOKI_ENDPOINT=$LOKI_ENDPOINT
+DB_ENDPOINT=$DB_ENDPOINT
+DB_PASSWORD=$DB_PASSWORD
+APP_INSTANCE_ID=$INSTANCE_ID
+ENV
+chmod 600 /opt/${project}/.env
+
+cat > /opt/${project}/compose.yaml <<'COMPOSE'
+${compose}
+COMPOSE
+
+cat > /opt/${project}/alloy-config.alloy <<'ALLOY'
+${alloy}
+ALLOY
+
+cat > /etc/systemd/system/${project}.service <<'UNIT'
+${unit}
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now ${project}.service
