@@ -10,7 +10,7 @@ locals {
     app   = "8080 은 ALB, 8081 은 ALB 와 모니터링"
     db    = "앱, 배치, 모니터링이 들어온다"
     cache = "앱과 모니터링이 들어온다"
-    mon   = "인바운드 없음"
+    mon   = "Loki 3100 만. Alloy 가 로그를 민다"
     batch = "인바운드 없음"
     lt    = "인바운드 없음"
   }
@@ -167,6 +167,25 @@ resource "aws_vpc_security_group_ingress_rule" "exporters_from_mon" {
   to_port                      = each.value.port
   ip_protocol                  = "tcp"
   description                  = each.value.desc
+}
+
+/*
+ * SG-mon 의 유일한 인바운드다.
+ * Alloy 가 각 인스턴스에서 로그를 읽어 Loki 로 밀어 넣는다. 방향이 다른 것들과 반대다.
+ * 스크랩은 모니터링이 나가는 연결이지만 로그는 들어오는 연결이다.
+ */
+resource "aws_vpc_security_group_ingress_rule" "loki_from_hosts" {
+  for_each = {
+    app   = aws_security_group.app.id
+    batch = aws_security_group.batch.id
+  }
+
+  security_group_id            = aws_security_group.mon.id
+  referenced_security_group_id = each.value
+  from_port                    = 3100
+  to_port                      = 3100
+  ip_protocol                  = "tcp"
+  description                  = "Alloy 로그 전송"
 }
 
 # 배치가 DB 에 못 붙으면 아무 일도 못 한다.

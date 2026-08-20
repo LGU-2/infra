@@ -61,6 +61,23 @@ services:
       - slack_webhook_warning
       - slack_webhook_watchdog
 
+  # 이 인스턴스 자기 컨테이너 로그도 Loki 로 보낸다.
+  alloy:
+    image: grafana/alloy:v1.12.1
+    container_name: alloy
+    restart: unless-stopped
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      INSTANCE_ROLE: monitoring
+      GIT_SHA: none
+      LOKI_ENDPOINT: loki
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/alloy/config.alloy
+
   # 관리형 서비스는 OS 접근이 안 된다. 엔진 내부 지표는 이 경로가 유일하다.
   mysqld-exporter:
     image: prom/mysqld-exporter:v0.17.2

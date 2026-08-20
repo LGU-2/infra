@@ -63,3 +63,20 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
+
+  # 컨테이너 로그를 Loki 로 민다. Loki 는 모니터링 인스턴스에 있다.
+  alloy:
+    image: grafana/alloy:v1.12.1
+    container_name: alloy
+    restart: unless-stopped
+    volumes:
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      INSTANCE_ROLE: "${role}"
+      GIT_SHA: "$${GIT_SHA}"
+      LOKI_ENDPOINT: "$${LOKI_ENDPOINT}"
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - /etc/alloy/config.alloy

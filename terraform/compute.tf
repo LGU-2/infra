@@ -29,6 +29,7 @@ data "aws_ami" "ubuntu_arm" {
  */
 locals {
   common_bootstrap = file("${path.module}/templates/common-bootstrap.sh")
+  alloy_config     = file("${path.module}/../observability/alloy/config.alloy")
 
   /*
    * ASG 밖 인스턴스용이다. Docker 와 AWS CLI 만 깔고 끝난다.
@@ -55,7 +56,8 @@ locals {
     common_bootstrap = local.common_bootstrap
     project          = var.project
     region           = var.region
-    compose          = templatefile("${path.module}/templates/compose.yaml.tftpl", merge(local.compose_args, { profiles = "prod" }))
+    alloy            = local.alloy_config
+    compose          = templatefile("${path.module}/templates/compose.yaml.tftpl", merge(local.compose_args, { profiles = "prod", role = "app" }))
     unit             = templatefile("${path.module}/templates/systemd.service.tftpl", { project = var.project, profiles = "prod" })
   })
 
@@ -63,7 +65,8 @@ locals {
     common_bootstrap = local.common_bootstrap
     project          = var.project
     region           = var.region
-    compose          = templatefile("${path.module}/templates/compose.yaml.tftpl", merge(local.compose_args, { profiles = "prod,batch" }))
+    alloy            = local.alloy_config
+    compose          = templatefile("${path.module}/templates/compose.yaml.tftpl", merge(local.compose_args, { profiles = "prod,batch", role = "batch" }))
     unit             = templatefile("${path.module}/templates/systemd.service.tftpl", { project = var.project, profiles = "prod,batch" })
   })
 }

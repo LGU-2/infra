@@ -64,6 +64,18 @@ resource "aws_ssm_parameter" "cache_endpoint" {
   }
 }
 
+/*
+ * Alloy 가 로그를 밀어 넣을 주소다.
+ * 모니터링은 ASG 밖 고정 인스턴스라 Terraform 이 IP 를 안다.
+ * 앱 시작 템플릿에 박지 않고 SSM 을 거치는 이유는, 박으면 IP 가 바뀔 때 템플릿을 다시 렌더링해야 하기 때문이다.
+ */
+resource "aws_ssm_parameter" "loki_endpoint" {
+  name        = "${local.ssm_prefix}/loki-endpoint"
+  description = "Alloy 가 로그를 보낼 Loki 주소"
+  type        = "String"
+  value       = aws_instance.monitoring.private_ip
+}
+
 resource "aws_ssm_parameter" "secure" {
   for_each = local.secure_params
 
