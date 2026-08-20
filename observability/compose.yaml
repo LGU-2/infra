@@ -1,0 +1,105 @@
+# 모니터링 인스턴스에서 도는 관측 스택이다.
+# 태그를 라인이 아니라 패치까지 고정한다. latest 는 어디에도 쓰지 않는다 (기술스택 6장).
+#
+# 설정은 읽기 전용으로 마운트한다 (INF-32).
+# 컨테이너 안에서 고쳐도 다음 재기동에 사라지므로 Git 이 유일한 출처가 된다.
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.13.1
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules.yml:/etc/prometheus/rules.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      # 부하 시험 결과를 되짚어 보려면 이 정도가 필요하다.
+      - --storage.tsdb.retention.time=15d
+      # 설정을 고치고 재기동 없이 반영하는 경로다 (OPS-2-18).
+      - --web.enable-lifecycle
+
+  grafana:
+    image: grafana/grafana:12.4.3
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    environment:
+      # 포트를 밖으로 열지 않고 SSM 포트 포워딩으로 본다. 익명 접근을 켜지 않는다.
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+
+  loki:
+    image: grafana/loki:3.7.4
+    container_name: loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    # 웹훅 URL 은 SSM 에서 받아 파일로 넣는다. compose 파일에 평문으로 두지 않는다.
+    secrets:
+      - slack_webhook_critical
+      - slack_webhook_warning
+      - slack_webhook_watchdog
+
+  # 관리형 서비스는 OS 접근이 안 된다. 엔진 내부 지표는 이 경로가 유일하다.
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.17.2
+    container_name: mysqld-exporter
+    restart: unless-stopped
+    command:
+      - --mysqld.address=${DB_ENDPOINT}:3306
+    environment:
+      MYSQLD_EXPORTER_PASSWORD: ${DB_EXPORTER_PASSWORD}
+      MYSQLD_EXPORTER_USER: exporter
+
+  # Valkey 가 RESP 호환이라 이름이 redis 여도 그대로 붙는다.
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.69.0
+    container_name: redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: "redis://${CACHE_ENDPOINT}:6379"
+
+  # RDS 와 ElastiCache 의 인스턴스 레벨 지표. CPU 크레딧이 여기서 나온다.
+  cloudwatch-exporter:
+    image: prom/cloudwatch-exporter:v0.16.0
+    container_name: cloudwatch-exporter
+    restart: unless-stopped
+    volumes:
+      - ./cloudwatch/config.yml:/config/config.yml:ro
+    command:
+      - /config/config.yml
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+  alertmanager-data:
+
+secrets:
+  slack_webhook_critical:
+    file: /run/secrets/slack_webhook_critical
+  slack_webhook_warning:
+    file: /run/secrets/slack_webhook_warning
+  slack_webhook_watchdog:
+    file: /run/secrets/slack_webhook_watchdog

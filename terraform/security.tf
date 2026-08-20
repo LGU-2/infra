@@ -147,6 +147,28 @@ resource "aws_vpc_security_group_ingress_rule" "db_from_app" {
   description                  = "앱의 커넥션 풀"
 }
 
+/*
+ * node_exporter 와 cAdvisor 는 앱과 배치 인스턴스에도 뜬다.
+ * 그 호스트의 CPU 크레딧과 컨테이너 상태를 봐야 하므로 모니터링이 여기로 긁는다.
+ * 포트는 observability/README.md 가 정한다. cAdvisor 기본값 8080 은 앱과 겹쳐 8082 로 옮겼다.
+ */
+resource "aws_vpc_security_group_ingress_rule" "exporters_from_mon" {
+  for_each = {
+    app_node       = { sg = aws_security_group.app.id, port = 9100, desc = "node_exporter" }
+    app_cadvisor   = { sg = aws_security_group.app.id, port = 8082, desc = "cAdvisor" }
+    batch_node     = { sg = aws_security_group.batch.id, port = 9100, desc = "node_exporter" }
+    batch_cadvisor = { sg = aws_security_group.batch.id, port = 8082, desc = "cAdvisor" }
+    batch_mgmt     = { sg = aws_security_group.batch.id, port = 8081, desc = "액추에이터" }
+  }
+
+  security_group_id            = each.value.sg
+  referenced_security_group_id = aws_security_group.mon.id
+  from_port                    = each.value.port
+  to_port                      = each.value.port
+  ip_protocol                  = "tcp"
+  description                  = each.value.desc
+}
+
 # 배치가 DB 에 못 붙으면 아무 일도 못 한다.
 resource "aws_vpc_security_group_ingress_rule" "db_from_batch" {
   security_group_id            = aws_security_group.db.id

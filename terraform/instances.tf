@@ -30,11 +30,11 @@ resource "aws_instance" "monitoring" {
   }
 
   /*
-   * 관측 스택을 아직 올리지 않는다. Docker 만 깔아 둔 미완성 상태다.
-   * Prometheus, Grafana, Loki, Alertmanager 는 컨테이너로 돌지만 그 compose 와 설정이 이 저장소에 없다.
-   * INF-32 가 "Git 으로 관리하고 읽기 전용 마운트" 로 방향만 정해 두었고 갖다 놓는 경로는 미정이다.
+   * observability/ 를 클론해 스택을 올린다.
+   * 설정을 Terraform 이 아니라 Git 이 갖는 이유는 INF-32 와 OPS-2-18 에 있다.
+   * 임계값을 고칠 때마다 apply 를 하지 않기 위해서다.
    */
-  user_data_base64 = base64encode(local.standalone_user_data)
+  user_data_base64 = base64encode(local.monitoring_user_data)
 
   tags = {
     Name = "${var.project}-monitoring"

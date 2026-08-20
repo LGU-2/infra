@@ -13,6 +13,8 @@ locals {
   secure_params = {
     "jwt-signing-key"        = "JWT 서명 키. kid 로 회전한다"
     "db-password"            = "RDS 마스터 비밀번호"
+    "db-exporter-password"   = "mysqld_exporter 전용 계정. 마스터와 분리한다"
+    "github-token"           = "모니터링 인스턴스가 observability 설정을 클론할 때 쓴다"
     "slack-webhook-critical" = "Alertmanager critical 채널"
     "slack-webhook-warning"  = "Alertmanager warning 채널"
     "slack-webhook-watchdog" = "Alertmanager watchdog 채널"
@@ -42,6 +44,18 @@ resource "aws_ssm_parameter" "current_sha" {
 resource "aws_ssm_parameter" "db_endpoint" {
   name        = "${local.ssm_prefix}/db-endpoint"
   description = "앱과 배치가 접속할 DB 엔드포인트"
+  type        = "String"
+  value       = "unset"
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+# redis_exporter 가 붙을 주소. RDS 와 같은 이유로 복원 시 바뀔 수 있다.
+resource "aws_ssm_parameter" "cache_endpoint" {
+  name        = "${local.ssm_prefix}/cache-endpoint"
+  description = "모니터링이 접속할 캐시 엔드포인트"
   type        = "String"
   value       = "unset"
 

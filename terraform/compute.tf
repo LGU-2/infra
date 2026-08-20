@@ -36,6 +36,14 @@ locals {
    */
   standalone_user_data = "#!/bin/bash\n${local.common_bootstrap}"
 
+  monitoring_user_data = templatefile("${path.module}/templates/monitoring-user-data.sh.tftpl", {
+    common_bootstrap = local.common_bootstrap
+    project          = var.project
+    region           = var.region
+    github_org       = var.github_org
+    infra_repo       = var.github_infra_repo
+  })
+
   compose_args = {
     project     = var.project
     github_org  = var.github_org

@@ -34,3 +34,32 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
+
+  # 호스트 지표. CPU 크레딧이 여기서 나온다. 모니터링이 9100 으로 긁는다.
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host
+    ports:
+      - "9100:9100"
+    volumes:
+      - /:/host:ro,rslave
+    command:
+      - --path.rootfs=/host
+
+  # 컨테이너 지표. OOM 감지가 여기서 나온다.
+  # 기본 포트가 8080 이라 앱과 겹친다. 8082 로 옮긴다.
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.53.0
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "8082:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
