@@ -125,3 +125,27 @@ variable "media_bucket_name" {
   type        = string
   default     = ""
 }
+
+/*
+ * 확정값은 true 다 (기술 스택 확정 문서 2.6절).
+ * 구축 초기에는 false 로 시작한다. multi_az 는 제자리 변경이라 나중에 올려도 인스턴스를 다시 만들지 않는다.
+ * 장애 주입 시험(OPS-2-03 reboot with failover) 착수 전에는 반드시 true 여야 한다.
+ */
+variable "db_multi_az" {
+  description = "RDS Multi-AZ 여부. false 인 동안은 RTO 2분과 RPO 0 목표가 성립하지 않는다"
+  type        = bool
+  default     = false
+}
+
+# 문서가 "트래픽이 가장 적은 시간대" 로만 정해 두었다. 실제 패턴을 보고 확정한다.
+variable "db_backup_window" {
+  description = "RDS 자동 백업 창 (UTC). 기본값은 KST 새벽 3시다"
+  type        = string
+  default     = "18:00-19:00"
+}
+
+variable "db_maintenance_window" {
+  description = "RDS 유지보수 창 (UTC). 백업 창과 겹치지 않게 둔다"
+  type        = string
+  default     = "sun:19:30-sun:20:30"
+}

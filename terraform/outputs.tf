@@ -28,3 +28,13 @@ output "security_group_ids" {
     lt    = aws_security_group.lt.id
   }
 }
+
+output "db_endpoint" {
+  description = "SSM db-endpoint 파라미터에 넣을 값"
+  value       = aws_db_instance.main.address
+}
+
+output "cache_endpoint" {
+  description = "앱이 접속할 캐시 주소"
+  value       = aws_elasticache_replication_group.main.primary_endpoint_address
+}
