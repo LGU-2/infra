@@ -3,7 +3,7 @@
 # 생성 명령: gen_items.py <dir> '*-guideline.md' 'infra' 코드
 version: 1
 source: infra
-count: 118
+count: 120
 items:
   - {id: INF-1-01, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "배치 목록을 유형(멱등 전이형, 재계산형, 누적 연산형, 외부 부수효과형, 순번 발급형)으로 분류했는가", criteria: "누적 연산형은 멱등화가 필수이고, 외부 부수효과형은 멱등화로도 못 막아 선점이 필요하다."}
   - {id: INF-1-04, doc: code-guideline.md, ch: 1, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "상태 전이가 조건부 UPDATE인가", criteria: "조회 후 갱신 패턴이 남아 있으면 갱신 손실이 그대로 발생한다."}
@@ -41,7 +41,7 @@ items:
   - {id: INF-8-01, doc: code-guideline.md, ch: 8, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "누적 값 테이블에 변경 이력이 함께 남는가", criteria: "이력이 없으면 부분 복구가 불가능하고 정합성 검증 자체가 성립하지 않는다."}
   - {id: INF-8-02, doc: code-guideline.md, ch: 8, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "정합성 검증 배치가 이력에서 재계산한 값과 현재 값을 대조하는가"}
   - {id: INF-8-03, doc: code-guideline.md, ch: 8, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "알람 메시지에 오차 건수, 최대 오차, 최근 변경 시각, 변경 주체가 포함되는가", criteria: "변경 주체가 전부 같은 시각의 `BATCH`라면 원인이 즉시 드러난다."}
-  - {id: INF-9-01, doc: code-guideline.md, ch: 9, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "`/actuator/prometheus`가 노출되어 있고 ALB에서 `/actuator/**`가 차단되는가"}
+  - {id: INF-9-01, doc: code-guideline.md, ch: 9, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "액추에이터가 `management.server.port` 로 8080 과 분리되어 있고 `/actuator/prometheus` 가 노출되는가", criteria: "같은 포트에 두면 밖에서 막을 규칙이 따로 필요하고, 그 규칙이 지워지면 그대로 열린다. 포트를 나누면 8080 에 그 경로가 존재하지 않는다."}
   - {id: INF-9-02, doc: code-guideline.md, ch: 9, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "메트릭 태그에 `application`과 `instance`가 있는가"}
   - {id: INF-9-03, doc: code-guideline.md, ch: 9, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "로그가 stdout JSON이고 `traceId`가 MDC에 실리는가", criteria: "롤링 혼재 구간에서 구 버전과 신 버전의 로그를 구분해 따라가려면 이 값이 필요하다."}
   - {id: INF-9-04, doc: code-guideline.md, ch: 9, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "Loki 레이블에 식별자처럼 값 종류가 무한한 항목을 넣지 않았는가", criteria: "카디널리티가 폭발해 Loki가 느려진다. 본문 JSON 필드로 두고 쿼리 시 파싱한다."}
@@ -77,7 +77,9 @@ items:
   - {id: INF-12-16, doc: code-guideline.md, ch: 12, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "RDS 파라미터 그룹에 `max_connections` 를 지정하지 않았는가", criteria: "기본 파라미터 그룹의 공식을 그대로 쓴다. 1 GiB 에서 커넥션당 12MB 라 공식보다 높게 잡으면 OOM 이 난다."}
   - {id: INF-12-17, doc: code-guideline.md, ch: 12, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "캐시가 `aws_elasticache_cluster` 가 아니라 `aws_elasticache_replication_group` 인가", criteria: "복제본 추가는 replication group 에만 가능하다. 나중에 바꾸려면 이관이 필요하고 지금 정하면 비용 차이가 0 이다."}
   - {id: INF-12-18, doc: code-guideline.md, ch: 12, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "ACM 검증용 DNS 레코드가 Terraform 관리 대상인가", criteria: "자동 갱신은 검증 레코드가 살아 있을 때만 된다. 레코드가 사라지면 갱신이 조용히 실패하고 만료 시점에야 드러난다."}
-  - {id: INF-12-19, doc: code-guideline.md, ch: 12, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "ALB 리스너에 `/actuator/**` 차단 규칙과 80에서 443으로의 리다이렉트가 있는가", criteria: "액추에이터는 VPC 내부에서만 접근한다. 헬스체크는 ALB 가 내부에서 수행하므로 차단해도 동작한다."}
+  - {id: INF-12-19, doc: code-guideline.md, ch: 12, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "대상 그룹이 트래픽 포트 8080 과 헬스체크 포트 8081 을 나눠 보는가", criteria: "액추에이터를 관리 포트로 뺐으므로 헬스체크도 그쪽을 봐야 한다. 8080 으로 찌르면 404 가 돌아온다."}
+  - {id: INF-12-21, doc: code-guideline.md, ch: 12, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "8081 을 여는 인바운드가 ALB 와 모니터링 보안 그룹뿐인가", criteria: "이 포트가 밖으로 열리면 관리 포트로 분리한 의미가 사라진다."}
+  - {id: INF-12-22, doc: code-guideline.md, ch: 12, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "80 에서 443 으로의 리다이렉트가 있는가", criteria: "stateless JWT 가 헤더로 오가므로 평문 구간을 둘 수 없다 (INF-17)."}
   - {id: INF-12-20, doc: code-guideline.md, ch: 12, level: 코드, gate: G-PR, gates: [local, ci], ci_stage: 2, domains: [application, infra], level_verified: false, title: "오토스케일링 정책을 만들었다면 지표가 `ALBRequestCountPerTarget` 인가", criteria: "버스트 인스턴스에서 CPU 사용률은 왜곡된다. 크레딧 소진을 구조적으로 감지하지 못한다. 현재 구성에서는 상한이 2대라 정책 자체를 두지 않는 것이 기본이다."}
   - {id: OPS-1-01, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "부하 시험에서 앱이 병목으로 확인되었는가", criteria: "DB가 병목이면 앱을 늘려도 효과가 없다."}
   - {id: OPS-1-02, doc: operation-guideline.md, ch: 1, level: 운영, gate: G-AUDIT, gates: [local, ci], ci_stage: 2, domains: [infra], level_verified: false, title: "`max_connections`가 목표 인스턴스 수를 수용하는가"}

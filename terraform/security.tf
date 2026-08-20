@@ -7,7 +7,7 @@
 locals {
   sg_names = {
     alb   = "인터넷을 받는 유일한 자리"
-    app   = "ALB 와 모니터링만 들어온다"
+    app   = "8080 은 ALB, 8081 은 ALB 와 모니터링"
     db    = "앱, 배치, 모니터링이 들어온다"
     cache = "앱과 모니터링이 들어온다"
     mon   = "인바운드 없음"
@@ -115,14 +115,25 @@ resource "aws_vpc_security_group_ingress_rule" "app_from_alb" {
 }
 
 /*
- * Prometheus 가 /actuator/prometheus 를 15초마다 긁는다.
- * 이 규칙이 없으면 앱 지표가 통째로 사라진다.
+ * 액추에이터를 8081 로 분리했다.
+ * ALB 는 헬스체크를, Prometheus 는 /actuator/prometheus 를 여기로 찌른다.
+ * 이 포트가 밖으로 열리면 관리 포트로 나눈 의미가 사라진다 (INF-12-21).
  */
-resource "aws_vpc_security_group_ingress_rule" "app_from_mon" {
+resource "aws_vpc_security_group_ingress_rule" "app_mgmt_from_alb" {
+  security_group_id            = aws_security_group.app.id
+  referenced_security_group_id = aws_security_group.alb.id
+  from_port                    = 8081
+  to_port                      = 8081
+  ip_protocol                  = "tcp"
+  description                  = "ALB 헬스체크와 liveness 경로"
+}
+
+# 이 규칙이 없으면 앱 지표가 통째로 사라진다.
+resource "aws_vpc_security_group_ingress_rule" "app_mgmt_from_mon" {
   security_group_id            = aws_security_group.app.id
   referenced_security_group_id = aws_security_group.mon.id
-  from_port                    = 8080
-  to_port                      = 8080
+  from_port                    = 8081
+  to_port                      = 8081
   ip_protocol                  = "tcp"
   description                  = "Prometheus 스크랩"
 }
