@@ -1,0 +1,103 @@
+# 값의 근거는 전부 docs/system-design/ 에 있다. 여기서 새로 정하지 않는다.
+
+variable "project" {
+  description = "모든 리소스 이름과 SSM 경로의 접두사"
+  type        = string
+  default     = "freshmarket"
+}
+
+variable "region" {
+  description = "AWS 리전. 범위가 단일 리전이다 (INF-01)"
+  type        = string
+  default     = "ap-northeast-2"
+}
+
+/*
+ * AWS 는 계정마다 AZ 이름을 다른 물리 영역에 매핑한다.
+ * 그래서 이 값은 이 계정 기준이며 변수로 둔다.
+ */
+variable "azs" {
+  description = "논리 AZ 이름을 실제 AZ 에 매핑한다"
+  type        = map(string)
+
+  default = {
+    a = "ap-northeast-2a"
+    c = "ap-northeast-2c"
+  }
+}
+
+variable "vpc_cidr" {
+  description = "VPC CIDR"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+/*
+ * 앱을 퍼블릭 서브넷에 두는 이유는 NAT Gateway 를 쓰지 않기 위해서다 (INF-09).
+ * 보안은 서브넷이 아니라 보안 그룹으로 확보한다.
+ */
+variable "public_subnet_cidrs" {
+  description = "퍼블릭 서브넷. ALB, 앱, 모니터링, 배치, 부하 생성"
+  type        = map(string)
+
+  default = {
+    a = "10.0.1.0/24"
+    c = "10.0.2.0/24"
+  }
+}
+
+variable "private_subnet_cidrs" {
+  description = "프라이빗 서브넷. RDS 와 ElastiCache"
+  type        = map(string)
+
+  default = {
+    a = "10.0.11.0/24"
+    c = "10.0.12.0/24"
+  }
+}
+
+/*
+ * 비어 있으면 Route 53 과 ACM 과 HTTPS 리스너를 만들지 않는다.
+ * 도메인이 생기면 이 값만 채워 apply 한다.
+ */
+variable "domain_name" {
+  description = "서비스 도메인. 예: api.example.com"
+  type        = string
+  default     = ""
+}
+
+variable "instance_types" {
+  description = "역할별 인스턴스 타입. 기술 스택 확정 문서 2.6절"
+  type        = map(string)
+
+  default = {
+    app        = "t3.small"
+    monitoring = "t4g.small"
+    batch      = "t4g.micro"
+    load_test  = "t3a.small"
+  }
+}
+
+variable "db_instance_class" {
+  description = "RDS 인스턴스 클래스"
+  type        = string
+  default     = "db.t4g.micro"
+}
+
+variable "cache_node_type" {
+  description = "ElastiCache 노드 타입"
+  type        = string
+  default     = "cache.t4g.micro"
+}
+
+variable "db_name" {
+  description = "데이터베이스 이름. backend 의 compose.yaml 과 같아야 한다"
+  type        = string
+  default     = "freshmarket"
+}
+
+variable "db_username" {
+  description = "DB 마스터 사용자"
+  type        = string
+  default     = "freshmarket"
+}
