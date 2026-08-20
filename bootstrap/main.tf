@@ -18,6 +18,10 @@ terraform {
 provider "aws" {
   region = var.region
 
+  # terraform/ 과 같은 계정을 가리켜야 한다. 상태 버킷이 거기 있기 때문이다.
+  profile             = var.aws_profile != "" ? var.aws_profile : null
+  allowed_account_ids = var.allowed_account_ids
+
   default_tags {
     tags = {
       Project   = var.project
@@ -37,6 +41,18 @@ variable "region" {
   description = "AWS 리전"
   type        = string
   default     = "ap-northeast-2"
+}
+
+variable "aws_profile" {
+  description = "AWS CLI 프로파일 이름. 비우면 기본 자격증명을 쓴다"
+  type        = string
+  default     = ""
+}
+
+variable "allowed_account_ids" {
+  description = "이 구성을 적용해도 되는 AWS 계정 ID"
+  type        = list(string)
+  default     = []
 }
 
 resource "aws_s3_bucket" "tfstate" {

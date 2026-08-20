@@ -29,8 +29,11 @@ terraform {
  * 그 알람 하나 때문에 프로바이더 별칭이 필요하다.
  */
 provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
+  alias   = "us_east_1"
+  region  = "us-east-1"
+  profile = var.aws_profile != "" ? var.aws_profile : null
+
+  allowed_account_ids = var.allowed_account_ids
 
   default_tags {
     tags = {
@@ -42,6 +45,19 @@ provider "aws" {
 
 provider "aws" {
   region = var.region
+
+  /*
+   * 프로파일을 비워 두면 기본 자격증명이나 환경변수를 쓴다.
+   * 계정을 여럿 쓰는 환경에서는 tfvars 에 이름을 박아 두는 편이 안전하다.
+   */
+  profile = var.aws_profile != "" ? var.aws_profile : null
+
+  /*
+   * 잘못된 계정에 apply 하는 사고를 막는다.
+   * 자격증명이 여기 없는 계정을 가리키면 plan 단계에서 멈춘다.
+   * 비워 두면 검사하지 않는다.
+   */
+  allowed_account_ids = var.allowed_account_ids
 
   /*
    * 모든 리소스에 붙는다.

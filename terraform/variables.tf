@@ -1,5 +1,26 @@
 # 값의 근거는 전부 docs/system-design/ 에 있다. 여기서 새로 정하지 않는다.
 
+/*
+ * 계정을 여럿 쓰는 환경에서 어느 자격증명을 쓸지 고른다.
+ * 비우면 기본 자격증명이나 환경변수를 쓴다.
+ */
+variable "aws_profile" {
+  description = "AWS CLI 프로파일 이름"
+  type        = string
+  default     = ""
+}
+
+/*
+ * 잘못된 계정에 apply 하는 사고를 막는 마지막 방어다.
+ * 프로파일을 잘못 잡거나 환경변수가 남아 있으면 plan 단계에서 멈춘다.
+ * 비워 두면 검사하지 않는다.
+ */
+variable "allowed_account_ids" {
+  description = "이 구성을 적용해도 되는 AWS 계정 ID"
+  type        = list(string)
+  default     = []
+}
+
 variable "project" {
   description = "모든 리소스 이름과 SSM 경로의 접두사"
   type        = string
