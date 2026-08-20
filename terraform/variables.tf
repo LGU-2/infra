@@ -101,3 +101,27 @@ variable "db_username" {
   type        = string
   default     = "freshmarket"
 }
+
+variable "github_org" {
+  description = "GitHub 조직. OIDC 신뢰 조건과 GHCR 이미지 경로에 쓴다"
+  type        = string
+  default     = "fresh-market"
+}
+
+variable "github_backend_repo" {
+  description = "배포를 트리거하는 저장소. 이 저장소의 main 브랜치만 배포 역할을 맡을 수 있다"
+  type        = string
+  default     = "fm-backend"
+}
+
+variable "github_infra_repo" {
+  description = "terraform plan 을 돌리는 저장소"
+  type        = string
+  default     = "fm-infra"
+}
+
+variable "media_bucket_name" {
+  description = "이미지 버킷 이름. 비우면 {project}-media 를 쓴다"
+  type        = string
+  default     = ""
+}
