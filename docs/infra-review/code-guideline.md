@@ -253,7 +253,57 @@ ASG가 인스턴스를 교체할 때 시작 템플릿의 태그가 고정되어 
 세 이미지 테이블(`product_image`, `claim_attachment`, `shipment_photo`)이 각자 소유 리소스의 FK를 갖고 있어
 이 확인이 조인 한 번으로 끝난다. 다형 테이블 하나로 합쳤다면 행마다 소유자를 찾는 경로가 달라졌을 것이다.
 
-## 12. 관련 문서
+## 12. 인프라 코드
+
+출처: 기술 스택 확정 문서 3.7절, 무중단 배포 롤링 5절, 알람과 알림 설계 3.3절
+
+**이 절만 판정 대상이 이 저장소의 `.tf` 파일이다.** 나머지 장은 backend 코드를 본다.
+
+인프라 결정의 상당수가 코드 한 줄에 걸려 있다. 배치 프로필 문자열 하나, `ignore_changes` 한 줄이 빠지면 락도 알람도 그것을 잡지 못한다. 그래서 파일을 읽어 판정할 수 있는 것만 여기 둔다. 런타임 상태를 조회해야 하는 것은 `preflight-guideline.md` 로 간다.
+
+점검 항목
+* `INF-12-01` `required_version` 과 AWS 프로바이더 버전이 고정되어 있는가
+  코어는 `~> 1.15`, 프로바이더는 `~> 6.0` 이다. 프로바이더 고정이 코어보다 실질적으로 더 중요하다. 리소스 스키마가 거기서 바뀐다.
+* `INF-12-02` 상태 백엔드가 S3 이고 `encrypt` 와 `use_lockfile` 이 켜져 있는가
+  DynamoDB 잠금 테이블이 아니라 S3 네이티브 잠금을 쓴다. `backend "s3"` 블록 안에서는 변수 보간이 안 되므로 값은 `-backend-config` 로 넘긴다.
+* `INF-12-03` SSM `current-sha` 파라미터에 `ignore_changes = [value]` 가 걸려 있는가
+  값은 배포 스크립트가 갱신한다. 이 줄이 없으면 다음 `apply` 가 값을 `bootstrap` 으로 되돌려 전 인스턴스가 구버전으로 기동한다.
+* `INF-12-04` 앱 ASG 에 `ignore_changes = [desired_capacity]` 가 걸려 있는가
+  배포 중 desired 가 일시적으로 2가 된다. 이 줄이 없으면 `apply` 가 배포를 되돌린다.
+* `INF-12-05` 앱 ASG 가 `min_size` 0, `desired_capacity` 1, `max_size` 2, `health_check_type` `ELB` 인가
+  `max_size` 가 2여야 배포 절차가 성립한다. desired 를 2로 두면 신규를 띄울 자리가 없다.
+* `INF-12-06` ALB 에 `enable_deletion_protection` 과 `prevent_destroy` 가 둘 다 있는가
+  IaC 도입으로 오히려 커진 위험이다. 잘못된 변수 파일로 destroy 를 돌리면 ALB 가 사라지고 DNS 이름이 바뀐다. 두 겹으로 막는다.
+* `INF-12-07` 앱 시작 템플릿의 user-data 에 `batch` 프로필이 없는가
+  배치 프로세스가 하나라는 전제가 이 문자열 하나에 걸려 있다. 앱 ASG 에 들어가면 앱 대수만큼 배치가 돈다. 분산 락이 없으므로 아무것도 막지 못한다.
+* `INF-12-08` 앱 시작 템플릿이 이미지 태그를 고정하지 않고 SSM 에서 읽는가
+  고정하면 ASG 교체 시 최초 구축 시점 버전이 올라온다. 장애 복구가 곧 버전 롤백이 되고 혼재 구간이 무기한 지속된다.
+* `INF-12-09` 모니터링 인스턴스가 ASG 밖에 있는가
+  ASG 의 desired 0 은 EBS 까지 삭제한다. Prometheus 와 Loki 데이터가 사라진다.
+* `INF-12-10` NAT Gateway 리소스가 없는가
+  월 40 USD 이상으로 예산의 4분의 1을 차지한다. 앱을 퍼블릭 서브넷에 두는 설계 전체가 이 결정에서 나왔다.
+* `INF-12-11` 22번 포트를 여는 인바운드 규칙이 없는가
+  운영 접근은 SSM Session Manager 로 한다.
+* `INF-12-12` 보안 그룹 인바운드가 CIDR 이 아니라 보안 그룹 참조인가
+  앱이 퍼블릭 서브넷에 있으므로 보안은 서브넷이 아니라 보안 그룹이 확보한다. CIDR 로 열면 그 전제가 깨진다. 인터넷을 받는 ALB 만 예외다.
+* `INF-12-13` 모든 CloudWatch 로그 그룹에 `retention_in_days` 가 있는가
+  기본값이 무기한이라 생략하면 저장이 계속 누적된다.
+* `INF-12-14` CloudWatch 알람이 6개 이하이고 전부 단일 지표인가
+  무료 한도가 10개다. 이상 탐지, 복합 알람, 고해상도 알람, 커스텀 지표 전송, CloudWatch 대시보드는 쓰지 않는다. 각각 별도 과금이다.
+* `INF-12-15` RDS 에 `multi_az`, `backup_retention_period` 7, `deletion_protection`, `skip_final_snapshot = false` 가 있는가
+  자동 백업은 인스턴스를 지우면 함께 사라진다. 최종 스냅샷을 건너뛰면 되돌릴 수단이 없다.
+* `INF-12-16` RDS 파라미터 그룹에 `max_connections` 를 지정하지 않았는가
+  기본 파라미터 그룹의 공식을 그대로 쓴다. 1 GiB 에서 커넥션당 12MB 라 공식보다 높게 잡으면 OOM 이 난다.
+* `INF-12-17` 캐시가 `aws_elasticache_cluster` 가 아니라 `aws_elasticache_replication_group` 인가
+  복제본 추가는 replication group 에만 가능하다. 나중에 바꾸려면 이관이 필요하고 지금 정하면 비용 차이가 0 이다.
+* `INF-12-18` ACM 검증용 DNS 레코드가 Terraform 관리 대상인가
+  자동 갱신은 검증 레코드가 살아 있을 때만 된다. 레코드가 사라지면 갱신이 조용히 실패하고 만료 시점에야 드러난다.
+* `INF-12-19` ALB 리스너에 `/actuator/**` 차단 규칙과 80에서 443으로의 리다이렉트가 있는가
+  액추에이터는 VPC 내부에서만 접근한다. 헬스체크는 ALB 가 내부에서 수행하므로 차단해도 동작한다.
+* `INF-12-20` 오토스케일링 정책을 만들었다면 지표가 `ALBRequestCountPerTarget` 인가
+  버스트 인스턴스에서 CPU 사용률은 왜곡된다. 크레딧 소진을 구조적으로 감지하지 못한다. 현재 구성에서는 상한이 2대라 정책 자체를 두지 않는 것이 기본이다.
+
+## 13. 관련 문서
 
 * 근거와 확정값: `docs/system-design/`
 * 실행 전 자동 점검: [preflight-guideline.md](./preflight-guideline.md)

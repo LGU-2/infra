@@ -50,8 +50,9 @@ readiness 그룹      -> backend 의 application.yml
 스키마 확장 후 축소   -> backend 의 db/migration/*.sql
 ```
 
-Terraform과 k8s manifest가 판정 대상인 항목은 아직 없다. **이 저장소에 실행 가능한 산출물이 없기 때문이다.**
-Terraform 구성이 만들어지면 그때 `code-guideline.md`에 인프라 코드 점검 절을 추가하고 이 저장소의 `anchors.yml`을 만든다.
+**Terraform 은 `code-guideline.md` 12장이 판정한다.** 이 저장소에서 유일하게 자기 산출물을 보는 절이다. 나머지 장은 backend 코드가 대상이다.
+
+k8s manifest 는 판정 대상이 아니다. 오케스트레이션을 EC2 와 Compose 로 정했다(`INF-07`).
 
 ## 다른 저장소와의 경계
 
