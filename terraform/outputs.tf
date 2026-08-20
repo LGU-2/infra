@@ -38,3 +38,18 @@ output "cache_endpoint" {
   description = "앱이 접속할 캐시 주소"
   value       = aws_elasticache_replication_group.main.primary_endpoint_address
 }
+
+output "alb_dns_name" {
+  description = "도메인이 없을 때 접속할 주소"
+  value       = aws_lb.main.dns_name
+}
+
+output "asg_name" {
+  description = "배포 스크립트가 desired 를 조절할 대상"
+  value       = aws_autoscaling_group.app.name
+}
+
+output "target_group_arn" {
+  description = "배포 스크립트가 healthy 수를 확인할 대상"
+  value       = aws_lb_target_group.app.arn
+}

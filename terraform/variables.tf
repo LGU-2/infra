@@ -149,3 +149,10 @@ variable "db_maintenance_window" {
   type        = string
   default     = "sun:19:30-sun:20:30"
 }
+
+# 시험 시간에만 켠다. 상시 가동 전제의 명시적 예외다.
+variable "load_test_enabled" {
+  description = "부하 생성 인스턴스를 띄울지 여부"
+  type        = bool
+  default     = false
+}

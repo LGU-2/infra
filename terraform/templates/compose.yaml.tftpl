@@ -1,0 +1,36 @@
+services:
+  app:
+    image: ghcr.io/${github_org}/${project}:$${GIT_SHA}
+    container_name: ${project}
+    # always 가 아니다. 운영자가 멈춘 것을 되살리면 장애 주입 시험이 성립하지 않는다.
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: "${profiles}"
+      DB_URL: "jdbc:mysql://$${DB_ENDPOINT}:3306/${db_name}?connectTimeout=3000&socketTimeout=10000"
+      DB_USERNAME: "${db_username}"
+      DB_PASSWORD: "$${DB_PASSWORD}"
+      APP_NAME: "${project}"
+      APP_INSTANCE_ID: "$${APP_INSTANCE_ID}"
+      TRACE_SAMPLE_RATE: "0.1"
+      # MaxRAMPercentage 는 컨테이너 한도 기준이다.
+      # DNS TTL 이 결정적이다. 이것이 빠지면 페일오버 후 옛 주소를 계속 찾는다.
+      JAVA_TOOL_OPTIONS: >-
+        -XX:MaxRAMPercentage=70
+        -Dnetworkaddress.cache.ttl=5
+        -Dnetworkaddress.cache.negative.ttl=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health/liveness"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+    # 종료 타임아웃 계층. Spring graceful 30초보다 길고 systemd 60초보다 짧다.
+    stop_grace_period: 45s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
