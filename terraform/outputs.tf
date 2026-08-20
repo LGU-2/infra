@@ -53,3 +53,13 @@ output "target_group_arn" {
   description = "배포 스크립트가 healthy 수를 확인할 대상"
   value       = aws_lb_target_group.app.arn
 }
+
+output "media_bucket" {
+  description = "이미지 버킷 이름"
+  value       = aws_s3_bucket.media.id
+}
+
+output "cdn_domain" {
+  description = "앱의 cdn.base-url 에 넣을 값"
+  value       = aws_cloudfront_distribution.media.domain_name
+}

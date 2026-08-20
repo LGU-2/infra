@@ -156,3 +156,17 @@ variable "load_test_enabled" {
   type        = bool
   default     = false
 }
+
+# Chatbot 이 죽었을 때의 대체 경로다. 비우면 이메일 구독을 만들지 않는다.
+variable "alert_email" {
+  description = "critical 알림을 받을 이메일"
+  type        = string
+  default     = ""
+}
+
+# presigned PUT 이 브라우저에서 직접 간다. 프론트 도메인이 정해지면 좁힌다.
+variable "media_cors_origins" {
+  description = "이미지 업로드를 허용할 오리진"
+  type        = list(string)
+  default     = ["*"]
+}

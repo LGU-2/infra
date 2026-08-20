@@ -24,6 +24,22 @@ terraform {
   }
 }
 
+/*
+ * Route 53 은 글로벌 서비스라 헬스체크 지표를 us-east-1 에만 올린다.
+ * 그 알람 하나 때문에 프로바이더 별칭이 필요하다.
+ */
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+
+  default_tags {
+    tags = {
+      Project   = var.project
+      ManagedBy = "terraform"
+    }
+  }
+}
+
 provider "aws" {
   region = var.region
 
