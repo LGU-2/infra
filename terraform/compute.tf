@@ -56,6 +56,7 @@ locals {
     common_bootstrap = local.common_bootstrap
     project          = var.project
     region           = var.region
+    github_org       = var.github_org
     alloy            = local.alloy_config
     compose          = templatefile("${path.module}/templates/compose.yaml.tftpl", merge(local.compose_args, { profiles = "prod", role = "app" }))
     unit             = templatefile("${path.module}/templates/systemd.service.tftpl", { project = var.project, profiles = "prod" })
@@ -65,6 +66,7 @@ locals {
     common_bootstrap = local.common_bootstrap
     project          = var.project
     region           = var.region
+    github_org       = var.github_org
     alloy            = local.alloy_config
     compose          = templatefile("${path.module}/templates/compose.yaml.tftpl", merge(local.compose_args, { profiles = "prod,batch", role = "batch" }))
     unit             = templatefile("${path.module}/templates/systemd.service.tftpl", { project = var.project, profiles = "prod,batch" })

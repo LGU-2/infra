@@ -15,6 +15,7 @@ locals {
     "db-password"            = "RDS master password"
     "db-exporter-password"   = "mysqld_exporter account. separate from master"
     "github-token"           = "used by monitoring to clone observability config"
+    "ghcr-token"             = "used by instances to pull images from GHCR. needs read:packages"
     "slack-webhook-critical" = "Alertmanager critical channel"
     "slack-webhook-warning"  = "Alertmanager warning channel"
     "slack-webhook-watchdog" = "Alertmanager watchdog channel"

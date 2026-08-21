@@ -105,6 +105,46 @@ for id in $old_ids; do
     --should-decrement-desired-capacity --region "$REGION" > /dev/null
 done
 
-# 10. 최종 확인
-log "10. 최종 healthy $(healthy_count) / desired $desired"
+# 10. 배치 인스턴스를 교체한다.
+#
+#     배치는 롤링 대상이 아니다. 중지 후 교체한다.
+#     롤링으로 하면 구버전과 신버전 배치가 겹쳐 "프로세스는 항상 하나" 전제가 깨진다.
+#
+#     앱보다 뒤에 하는 이유는 스키마 확장 후 축소 때문이다.
+#     앱이 먼저 새 버전이 되어야 배치가 새 스키마를 전제해도 안전하다.
+#
+#     user-data 는 최초 부팅에만 돌므로 재시작이 아니라 컨테이너를 다시 받아야 한다.
+batch_id=$(aws ec2 describe-instances --region "$REGION" \
+  --filters "Name=tag:Role,Values=batch" "Name=instance-state-name,Values=running" \
+  --query 'Reservations[0].Instances[0].InstanceId' --output text)
+
+if [ "$batch_id" = "None" ] || [ -z "$batch_id" ]; then
+  log "10. 배치 인스턴스가 없다. 건너뛴다"
+else
+  log "10. 배치 교체 $batch_id"
+  cmd_id=$(aws ssm send-command \
+    --instance-ids "$batch_id" \
+    --document-name AWS-RunShellScript \
+    --region "$REGION" \
+    --parameters "commands=[\"set -e\",\"sed -i s/^GIT_SHA=.*/GIT_SHA=$SHA/ /opt/$PROJECT/.env\",\"systemctl stop $PROJECT.service\",\"systemctl start $PROJECT.service\"]" \
+    --query 'Command.CommandId' --output text)
+
+  # 배치가 실행 중이면 stop 이 graceful shutdown 을 기다린다. systemd TimeoutStopSec 60 이 상한이다
+  for _ in $(seq 1 30); do
+    st=$(aws ssm get-command-invocation --command-id "$cmd_id" --instance-id "$batch_id" \
+      --region "$REGION" --query 'Status' --output text 2>/dev/null || echo Pending)
+    case "$st" in
+      Success) break ;;
+      Failed|Cancelled|TimedOut)
+        log "    배치 교체 실패 ($st). 앱은 이미 새 버전이다"
+        log "    배치가 옛 버전으로 도는 구간이 생겼다. 수동으로 확인하라"
+        exit 1 ;;
+    esac
+    sleep 5
+  done
+  log "    배치 교체 완료"
+fi
+
+# 11. 최종 확인
+log "11. 최종 healthy $(healthy_count) / desired $desired"
 log "배포 완료 $SHA"

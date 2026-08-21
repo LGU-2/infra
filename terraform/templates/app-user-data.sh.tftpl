@@ -7,12 +7,19 @@ GIT_SHA=$(aws ssm get-parameter --name "/${project}/current-sha" --region ${regi
 DB_ENDPOINT=$(aws ssm get-parameter --name "/${project}/db-endpoint" --region ${region} --query 'Parameter.Value' --output text)
 DB_PASSWORD=$(aws ssm get-parameter --name "/${project}/db-password" --region ${region} --with-decryption --query 'Parameter.Value' --output text)
 LOKI_ENDPOINT=$(aws ssm get-parameter --name "/${project}/loki-endpoint" --region ${region} --query 'Parameter.Value' --output text)
+CACHE_ENDPOINT=$(aws ssm get-parameter --name "/${project}/cache-endpoint" --region ${region} --query 'Parameter.Value' --output text)
+GHCR_TOKEN=$(aws ssm get-parameter --name "/${project}/ghcr-token" --region ${region} --with-decryption --query 'Parameter.Value' --output text)
 INSTANCE_ID=$(curl -fsS -H "X-aws-ec2-metadata-token: $(curl -fsS -X PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 60')" http://169.254.169.254/latest/meta-data/instance-id)
+
+# GHCR 패키지는 비공개다. 로그인하지 않으면 pull 이 unauthorized 로 죽는다.
+# 토큰은 read:packages 만 있으면 된다.
+echo "$GHCR_TOKEN" | docker login ghcr.io -u "${github_org}" --password-stdin
 
 mkdir -p /opt/${project}
 cat > /opt/${project}/.env <<ENV
 GIT_SHA=$GIT_SHA
 LOKI_ENDPOINT=$LOKI_ENDPOINT
+CACHE_ENDPOINT=$CACHE_ENDPOINT
 DB_ENDPOINT=$DB_ENDPOINT
 DB_PASSWORD=$DB_PASSWORD
 APP_INSTANCE_ID=$INSTANCE_ID

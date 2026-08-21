@@ -92,6 +92,39 @@ data "aws_iam_policy_document" "deploy" {
     }
   }
 
+  /*
+   * 배치 인스턴스를 교체하는 데 쓴다.
+   * 배치는 ASG 밖이라 desired 로 다룰 수 없고, SSM 으로 서비스를 재시작한다.
+   * 대상을 이 프로젝트의 인스턴스로 좁힌다.
+   */
+  statement {
+    sid       = "ReplaceBatch"
+    effect    = "Allow"
+    actions   = ["ssm:SendCommand"]
+    resources = ["arn:aws:ec2:${var.region}:${data.aws_caller_identity.current.account_id}:instance/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "ssm:resourceTag/Project"
+      values   = [var.project]
+    }
+  }
+
+  # 문서는 AWS 관리형이라 태그를 걸 수 없다.
+  statement {
+    sid       = "RunShellScriptDocument"
+    effect    = "Allow"
+    actions   = ["ssm:SendCommand"]
+    resources = ["arn:aws:ssm:${var.region}::document/AWS-RunShellScript"]
+  }
+
+  statement {
+    sid       = "ReadCommandResult"
+    effect    = "Allow"
+    actions   = ["ssm:GetCommandInvocation", "ssm:ListCommandInvocations"]
+    resources = ["*"]
+  }
+
   statement {
     sid    = "ObserveOnly"
     effect = "Allow"
