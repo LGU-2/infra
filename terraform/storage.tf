@@ -54,7 +54,7 @@ resource "aws_s3_bucket_cors_configuration" "media" {
 
 resource "aws_cloudfront_origin_access_control" "media" {
   name                              = "${var.project}-media"
-  description                       = "비공개 버킷을 서명으로 읽는다"
+  description                       = "read private bucket with signed requests"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -62,7 +62,7 @@ resource "aws_cloudfront_origin_access_control" "media" {
 
 resource "aws_cloudfront_distribution" "media" {
   enabled = true
-  comment = "${var.project} 이미지"
+  comment = "${var.project} media"
 
   origin {
     domain_name              = aws_s3_bucket.media.bucket_regional_domain_name

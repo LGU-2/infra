@@ -11,14 +11,14 @@
 # AZ-a 만 등록하면 나중에 Multi-AZ 를 켤 때 서브넷 그룹부터 고쳐야 한다.
 resource "aws_elasticache_subnet_group" "main" {
   name        = "${var.project}-cache"
-  description = "프라이빗 서브넷 2 AZ. 복제본을 붙일 자리를 미리 만든다"
+  description = "private subnets in 2 AZ. room for a replica later"
   subnet_ids  = [for s in aws_subnet.private : s.id]
 }
 
 resource "aws_elasticache_parameter_group" "main" {
   name        = "${var.project}-valkey90"
   family      = "valkey9"
-  description = "기본값을 쓴다. 캐시 용도라 조정할 것이 없다"
+  description = "defaults only. nothing to tune for cache use"
 
   lifecycle {
     create_before_destroy = true
@@ -27,7 +27,7 @@ resource "aws_elasticache_parameter_group" "main" {
 
 resource "aws_elasticache_replication_group" "main" {
   replication_group_id = "${var.project}-cache"
-  description          = "조회 캐시. 평상시 Degradable 등급이다"
+  description          = "read cache. Degradable grade in normal operation"
 
   engine         = "valkey"
   engine_version = "9.0"

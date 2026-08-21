@@ -12,10 +12,10 @@ locals {
 
   # 역할별로 필요한 것이 달라 하나로 묶지 않는다
   instance_roles = {
-    app        = "앱. 파라미터 조회와 이미지 버킷 접근"
-    monitoring = "모니터링. 파라미터 조회와 CloudWatch 지표 조회"
-    batch      = "배치. 파라미터 조회"
-    lt         = "부하 생성. 접속 수단만"
+    app        = "app. read parameters and access media bucket"
+    monitoring = "monitoring. read parameters and CloudWatch metrics"
+    batch      = "batch. read parameters"
+    lt         = "load test. session access only"
   }
 }
 

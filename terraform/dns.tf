@@ -17,7 +17,7 @@ resource "aws_route53_zone" "main" {
   count = local.has_domain ? 1 : 0
 
   name    = local.zone_name
-  comment = "${var.project} 서비스 도메인"
+  comment = "${var.project} service domain"
 
   lifecycle {
     prevent_destroy = true

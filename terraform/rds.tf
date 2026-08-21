@@ -5,7 +5,7 @@
 
 resource "aws_db_subnet_group" "main" {
   name        = "${var.project}-db"
-  description = "프라이빗 서브넷 2 AZ. Multi-AZ 의 전제다"
+  description = "private subnets in 2 AZ. required for Multi-AZ"
   subnet_ids  = [for s in aws_subnet.private : s.id]
 
   tags = {
@@ -24,7 +24,7 @@ resource "aws_db_subnet_group" "main" {
 resource "aws_db_parameter_group" "main" {
   name        = "${var.project}-mysql84"
   family      = "mysql8.4"
-  description = "콜레이션과 슬로우 쿼리만 지정한다"
+  description = "collation and slow query log only"
 
   parameter {
     name  = "character_set_server"
@@ -92,8 +92,8 @@ resource "aws_db_instance" "main" {
   parameter_group_name   = aws_db_parameter_group.main.name
   publicly_accessible    = false
 
-  # PITR 보존 7일. 최대 35일까지 올릴 수 있다.
-  backup_retention_period = 7
+  # PITR 보존. 확정값은 7일이고 프리 티어에서만 낮춘다.
+  backup_retention_period = var.db_backup_retention_days
   backup_window           = var.db_backup_window
   maintenance_window      = var.db_maintenance_window
 

@@ -34,7 +34,7 @@ resource "aws_cloudwatch_metric_alarm" "monitoring_status" {
   evaluation_periods  = 2
   threshold           = 1
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  alarm_description   = "모니터링 인스턴스 상태 검사 실패. 재기동하라"
+  alarm_description   = "monitoring instance status check failed. restart it"
 
   dimensions = {
     InstanceId = aws_instance.monitoring.id
@@ -54,7 +54,7 @@ resource "aws_cloudwatch_metric_alarm" "healthy_host_count" {
   evaluation_periods  = 1
   threshold           = 1
   comparison_operator = "LessThanThreshold"
-  alarm_description   = "정상 대상이 없다. 앱 상태를 확인하라"
+  alarm_description   = "no healthy targets. check the app"
   treat_missing_data  = "breaching"
 
   dimensions = {
@@ -81,7 +81,7 @@ resource "aws_cloudwatch_metric_alarm" "cert_expiry" {
   evaluation_periods  = 1
   threshold           = 30
   comparison_operator = "LessThanThreshold"
-  alarm_description   = "인증서 잔여일이 30일 미만이다. 검증 레코드를 확인하라"
+  alarm_description   = "certificate expires in under 30 days. check validation record"
 
   dimensions = {
     CertificateArn = aws_acm_certificate.main[0].arn
@@ -116,7 +116,7 @@ resource "aws_cloudwatch_metric_alarm" "endpoint_health" {
   evaluation_periods  = 2
   threshold           = 1
   comparison_operator = "LessThanThreshold"
-  alarm_description   = "외부에서 서비스에 닿지 못한다"
+  alarm_description   = "service unreachable from outside"
 
   dimensions = {
     HealthCheckId = aws_route53_health_check.endpoint[0].id

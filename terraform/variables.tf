@@ -201,3 +201,18 @@ variable "monthly_budget_usd" {
   type        = string
   default     = "140"
 }
+
+/*
+ * 확정값은 7일이다 (백업과복원 설계 3.1절). PITR 로 되돌릴 수 있는 범위를 정한다.
+ *
+ * 프리 티어 FREE 플랜은 이 값에 상한이 있어 7을 거부한다.
+ *   FreeTierRestrictionError: The specified backup retention period exceeds
+ *   the maximum available to free tier customers.
+ *
+ * 유료 플랜으로 올린 뒤 7로 되돌린다. 그 전까지는 복구 가능 범위가 그만큼 좁다.
+ */
+variable "db_backup_retention_days" {
+  description = "RDS 자동 백업 보존 기간. 확정값은 7이고 프리 티어에서만 낮춘다"
+  type        = number
+  default     = 7
+}

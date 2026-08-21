@@ -11,13 +11,13 @@ locals {
 
   # 자리만 만들고 값은 밖에서 채우는 시크릿들
   secure_params = {
-    "jwt-signing-key"        = "JWT 서명 키. kid 로 회전한다"
-    "db-password"            = "RDS 마스터 비밀번호"
-    "db-exporter-password"   = "mysqld_exporter 전용 계정. 마스터와 분리한다"
-    "github-token"           = "모니터링 인스턴스가 observability 설정을 클론할 때 쓴다"
-    "slack-webhook-critical" = "Alertmanager critical 채널"
-    "slack-webhook-warning"  = "Alertmanager warning 채널"
-    "slack-webhook-watchdog" = "Alertmanager watchdog 채널"
+    "jwt-signing-key"        = "JWT signing key. rotated by kid"
+    "db-password"            = "RDS master password"
+    "db-exporter-password"   = "mysqld_exporter account. separate from master"
+    "github-token"           = "used by monitoring to clone observability config"
+    "slack-webhook-critical" = "Alertmanager critical channel"
+    "slack-webhook-warning"  = "Alertmanager warning channel"
+    "slack-webhook-watchdog" = "Alertmanager watchdog channel"
   }
 }
 
@@ -28,7 +28,7 @@ locals {
  */
 resource "aws_ssm_parameter" "current_sha" {
   name        = "${local.ssm_prefix}/current-sha"
-  description = "현재 배포된 커밋 SHA"
+  description = "currently deployed commit SHA"
   type        = "String"
   value       = "bootstrap"
 
@@ -43,7 +43,7 @@ resource "aws_ssm_parameter" "current_sha" {
  */
 resource "aws_ssm_parameter" "db_endpoint" {
   name        = "${local.ssm_prefix}/db-endpoint"
-  description = "앱과 배치가 접속할 DB 엔드포인트"
+  description = "DB endpoint for app and batch"
   type        = "String"
   value       = "unset"
 
@@ -55,7 +55,7 @@ resource "aws_ssm_parameter" "db_endpoint" {
 # redis_exporter 가 붙을 주소. RDS 와 같은 이유로 복원 시 바뀔 수 있다.
 resource "aws_ssm_parameter" "cache_endpoint" {
   name        = "${local.ssm_prefix}/cache-endpoint"
-  description = "모니터링이 접속할 캐시 엔드포인트"
+  description = "cache endpoint for monitoring"
   type        = "String"
   value       = "unset"
 
@@ -71,7 +71,7 @@ resource "aws_ssm_parameter" "cache_endpoint" {
  */
 resource "aws_ssm_parameter" "loki_endpoint" {
   name        = "${local.ssm_prefix}/loki-endpoint"
-  description = "Alloy 가 로그를 보낼 Loki 주소"
+  description = "Loki address for Alloy log push"
   type        = "String"
   value       = aws_instance.monitoring.private_ip
 }

@@ -15,11 +15,11 @@ resource "aws_iam_openid_connect_provider" "github" {
 locals {
   github_roles = {
     deploy = {
-      description = "fm-backend main 병합 시 배포"
+      description = "deploy on merge to fm-backend main"
       subject     = "repo:${var.github_org}/${var.github_backend_repo}:ref:refs/heads/main"
     }
     tf_plan = {
-      description = "fm-infra PR 에서 terraform plan"
+      description = "terraform plan from fm-infra pull requests"
       subject     = "repo:${var.github_org}/${var.github_infra_repo}:pull_request"
     }
   }
