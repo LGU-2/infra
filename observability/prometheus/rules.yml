@@ -96,6 +96,22 @@ groups:
         annotations:
           description: "readiness 가 90초 넘게 실패했다. 배포를 중단하라"
 
+      # 배치가 조용히 멈추는 것을 잡는다.
+      #
+      # 배치 인스턴스는 ALB 대상이 아니라 HealthyHostCount 에 안 걸린다.
+      # 에러 알람은 작업이 돌아야 울리므로 프로세스가 아예 안 뜨면 아무 신호도 없다.
+      # 그래서 실패가 아니라 마지막 성공 시각이 낡는 것으로 감시한다.
+      #
+      # 작업 주기가 fixedDelay 10분이라 30분이면 세 번을 연달아 놓친 것이다.
+      - alert: BatchNotRun
+        expr: |
+          time() - batch_job_last_success_timestamp_seconds > 1800
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          description: "배치 {{ $labels.scheduler }} 가 30분 넘게 성공하지 못했다"
+
   # 임계값이 정해지지 않은 알람들. 부하 시험 후 채운다.
   #
   # - alert: FiveZeroTwo            502 발생. (미정) 초과
@@ -103,5 +119,4 @@ groups:
   # - alert: TomcatThreadsHigh      톰캣 스레드 사용률. (미정)% 초과
   # - alert: ConsumedLcuHigh        ConsumedLCUs. (미정) 초과
   # - alert: P99Slow                p99 응답시간. 기준선 대비 3배. 기준선이 없다
-  # - alert: BatchNotRun            배치 미실행. 주기가 정해지지 않았다
   # - alert: IntegrityCheckFailed   정합성 검증 실패. 검증 쿼리 결과를 내보내는 경로가 없다
