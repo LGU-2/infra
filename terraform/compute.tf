@@ -31,6 +31,13 @@ locals {
   common_bootstrap = file("${path.module}/templates/common-bootstrap.sh")
   alloy_config     = file("${path.module}/../observability/alloy/config.alloy")
 
+  # 최초 부팅과 재배포가 같은 코드를 쓴다
+  refresh_env = templatefile("${path.module}/templates/refresh-env.sh.tftpl", {
+    project    = var.project
+    region     = var.region
+    github_org = var.github_org
+  })
+
   /*
    * ASG 밖 인스턴스용이다. Docker 와 AWS CLI 만 깔고 끝난다.
    * 모니터링은 관측 스택을, 부하 생성은 k6 를 컨테이너로 돌리지만 그것을 올리는 것은 이 스크립트가 아니다.
@@ -57,6 +64,7 @@ locals {
     project          = var.project
     region           = var.region
     github_org       = var.github_org
+    refresh_env      = local.refresh_env
     alloy            = local.alloy_config
     compose          = templatefile("${path.module}/templates/compose.yaml.tftpl", merge(local.compose_args, { profiles = "prod", role = "app" }))
     unit             = templatefile("${path.module}/templates/systemd.service.tftpl", { project = var.project, profiles = "prod" })
@@ -67,6 +75,7 @@ locals {
     project          = var.project
     region           = var.region
     github_org       = var.github_org
+    refresh_env      = local.refresh_env
     alloy            = local.alloy_config
     compose          = templatefile("${path.module}/templates/compose.yaml.tftpl", merge(local.compose_args, { profiles = "prod,batch", role = "batch" }))
     unit             = templatefile("${path.module}/templates/systemd.service.tftpl", { project = var.project, profiles = "prod,batch" })

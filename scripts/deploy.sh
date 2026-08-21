@@ -113,7 +113,9 @@ done
 #     앱보다 뒤에 하는 이유는 스키마 확장 후 축소 때문이다.
 #     앱이 먼저 새 버전이 되어야 배치가 새 스키마를 전제해도 안전하다.
 #
-#     user-data 는 최초 부팅에만 돌므로 재시작이 아니라 컨테이너를 다시 받아야 한다.
+#     user-data 는 최초 부팅에만 돈다. 그냥 재시작하면 부팅 때 읽은 옛 값으로 다시 뜬다.
+#     refresh-env 가 SSM 을 다시 읽어 .env 를 통째로 만든다.
+#     GIT_SHA 만 고치면 DB 엔드포인트가 부팅 시점 값에 고정되어, 복원으로 주소가 바뀌면 못 따라간다.
 batch_id=$(aws ec2 describe-instances --region "$REGION" \
   --filters "Name=tag:Role,Values=batch" "Name=instance-state-name,Values=running" \
   --query 'Reservations[0].Instances[0].InstanceId' --output text)
@@ -126,7 +128,7 @@ else
     --instance-ids "$batch_id" \
     --document-name AWS-RunShellScript \
     --region "$REGION" \
-    --parameters "commands=[\"set -e\",\"sed -i s/^GIT_SHA=.*/GIT_SHA=$SHA/ /opt/$PROJECT/.env\",\"systemctl stop $PROJECT.service\",\"systemctl start $PROJECT.service\"]" \
+    --parameters "commands=[\"set -e\",\"/usr/local/bin/$PROJECT-refresh-env\",\"systemctl stop $PROJECT.service\",\"systemctl start $PROJECT.service\"]" \
     --query 'Command.CommandId' --output text)
 
   # 배치가 실행 중이면 stop 이 graceful shutdown 을 기다린다. systemd TimeoutStopSec 60 이 상한이다

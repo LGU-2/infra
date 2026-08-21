@@ -1,30 +1,14 @@
 #!/bin/bash
 ${common_bootstrap}
 
-# 어느 버전을 띄울지는 SSM 이 정한다 (INF-25).
-# 시작 템플릿에 태그를 박으면 ASG 교체 시 최초 구축 버전이 올라온다.
-GIT_SHA=$(aws ssm get-parameter --name "/${project}/current-sha" --region ${region} --query 'Parameter.Value' --output text)
-DB_ENDPOINT=$(aws ssm get-parameter --name "/${project}/db-endpoint" --region ${region} --query 'Parameter.Value' --output text)
-DB_PASSWORD=$(aws ssm get-parameter --name "/${project}/db-password" --region ${region} --with-decryption --query 'Parameter.Value' --output text)
-LOKI_ENDPOINT=$(aws ssm get-parameter --name "/${project}/loki-endpoint" --region ${region} --query 'Parameter.Value' --output text)
-CACHE_ENDPOINT=$(aws ssm get-parameter --name "/${project}/cache-endpoint" --region ${region} --query 'Parameter.Value' --output text)
-GHCR_TOKEN=$(aws ssm get-parameter --name "/${project}/ghcr-token" --region ${region} --with-decryption --query 'Parameter.Value' --output text)
-INSTANCE_ID=$(curl -fsS -H "X-aws-ec2-metadata-token: $(curl -fsS -X PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 60')" http://169.254.169.254/latest/meta-data/instance-id)
+# SSM 조회와 .env 생성을 스크립트로 빼 둔다.
+# 재배포 때 같은 것을 다시 돌려야 하므로 여기 인라인으로 두지 않는다.
+cat > /usr/local/bin/${project}-refresh-env <<'REFRESH'
+${refresh_env}
+REFRESH
+chmod 755 /usr/local/bin/${project}-refresh-env
 
-# GHCR 패키지는 비공개다. 로그인하지 않으면 pull 이 unauthorized 로 죽는다.
-# 토큰은 read:packages 만 있으면 된다.
-echo "$GHCR_TOKEN" | docker login ghcr.io -u "${github_org}" --password-stdin
-
-mkdir -p /opt/${project}
-cat > /opt/${project}/.env <<ENV
-GIT_SHA=$GIT_SHA
-LOKI_ENDPOINT=$LOKI_ENDPOINT
-CACHE_ENDPOINT=$CACHE_ENDPOINT
-DB_ENDPOINT=$DB_ENDPOINT
-DB_PASSWORD=$DB_PASSWORD
-APP_INSTANCE_ID=$INSTANCE_ID
-ENV
-chmod 600 /opt/${project}/.env
+/usr/local/bin/${project}-refresh-env
 
 cat > /opt/${project}/compose.yaml <<'COMPOSE'
 ${compose}

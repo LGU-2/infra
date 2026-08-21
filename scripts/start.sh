@@ -55,6 +55,19 @@ if [ "$endpoint" != "$current" ]; then
     --type String --overwrite --region "$REGION" > /dev/null
 fi
 
+# 배치와 모니터링은 중지했다 시작한 것이라 .env 가 부팅 시점 값 그대로다.
+# 그동안 엔드포인트가 바뀌었으면 여기서 따라잡는다.
+batch_id=$(aws ec2 describe-instances --region "$REGION" \
+  --filters "Name=tag:Role,Values=batch" "Name=instance-state-name,Values=running" \
+  --query 'Reservations[0].Instances[0].InstanceId' --output text)
+if [ "$batch_id" != "None" ] && [ -n "$batch_id" ]; then
+  log "2. 배치 .env 갱신 $batch_id"
+  aws ssm send-command --instance-ids "$batch_id" --document-name AWS-RunShellScript \
+    --region "$REGION" \
+    --parameters "commands=[\"set -e\",\"/usr/local/bin/$PROJECT-refresh-env\",\"systemctl restart $PROJECT.service\"]" \
+    --query 'Command.CommandId' --output text > /dev/null
+fi
+
 log "3. ASG desired $DESIRED"
 aws autoscaling set-desired-capacity \
   --auto-scaling-group-name "$PROJECT-app" \

@@ -56,6 +56,13 @@ resource "aws_instance" "batch" {
   iam_instance_profile   = aws_iam_instance_profile.instance["batch"].name
   user_data_base64       = base64encode(local.batch_user_data)
 
+  /*
+   * user-data 는 최초 부팅에만 돈다. 템플릿을 고쳐도 떠 있는 인스턴스의 compose.yaml 과 systemd 유닛은 그대로다.
+   * 배치는 상태를 디스크에 두지 않으므로 재생성이 안전하고, 그래야 Terraform 이 설정의 주인이 된다.
+   * SSM 에서 오는 값(SHA, DB 엔드포인트)은 재생성 없이 refresh-env 가 맡는다.
+   */
+  user_data_replace_on_change = true
+
   root_block_device {
     volume_size           = 20
     volume_type           = "gp3"
