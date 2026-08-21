@@ -4,15 +4,19 @@
  * 22번 포트는 어디에도 열지 않는다. 운영 접근은 SSM Session Manager 로 한다 (INF-12).
  */
 
+/*
+ * 보안 그룹 설명은 ASCII 만 받는다. AWS 가 한글을 거부한다.
+ * 규칙 설명도 마찬가지다. 주석은 한글로 두고 AWS 에 올라가는 문자열만 영어로 쓴다.
+ */
 locals {
   sg_names = {
-    alb   = "인터넷을 받는 유일한 자리"
-    app   = "8080 은 ALB, 8081 은 ALB 와 모니터링"
-    db    = "앱, 배치, 모니터링이 들어온다"
-    cache = "앱과 모니터링이 들어온다"
-    mon   = "Loki 3100 만. Alloy 가 로그를 민다"
-    batch = "인바운드 없음"
-    lt    = "인바운드 없음"
+    alb   = "public entry point. 443 and 80 from internet"
+    app   = "8080 from ALB, 8081 from ALB and monitoring"
+    db    = "3306 from app, batch, monitoring"
+    cache = "6379 from app and monitoring"
+    mon   = "3100 only. Alloy pushes logs to Loki"
+    batch = "no inbound"
+    lt    = "no inbound"
   }
 }
 
@@ -93,7 +97,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_https" {
   from_port         = 443
   to_port           = 443
   ip_protocol       = "tcp"
-  description       = "인터넷에서 오는 HTTPS"
+  description       = "HTTPS from internet"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "alb_http" {
@@ -102,7 +106,7 @@ resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   from_port         = 80
   to_port           = 80
   ip_protocol       = "tcp"
-  description       = "리스너가 443 으로 리다이렉트한다"
+  description       = "redirected to 443 by listener"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "app_from_alb" {
@@ -111,7 +115,7 @@ resource "aws_vpc_security_group_ingress_rule" "app_from_alb" {
   from_port                    = 8080
   to_port                      = 8080
   ip_protocol                  = "tcp"
-  description                  = "ALB 가 대상 그룹으로 보내는 트래픽"
+  description                  = "traffic from ALB target group"
 }
 
 /*
@@ -125,7 +129,7 @@ resource "aws_vpc_security_group_ingress_rule" "app_mgmt_from_alb" {
   from_port                    = 8081
   to_port                      = 8081
   ip_protocol                  = "tcp"
-  description                  = "ALB 헬스체크와 liveness 경로"
+  description                  = "ALB health check and liveness path"
 }
 
 # 이 규칙이 없으면 앱 지표가 통째로 사라진다.
@@ -135,7 +139,7 @@ resource "aws_vpc_security_group_ingress_rule" "app_mgmt_from_mon" {
   from_port                    = 8081
   to_port                      = 8081
   ip_protocol                  = "tcp"
-  description                  = "Prometheus 스크랩"
+  description                  = "Prometheus scrape"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "db_from_app" {
@@ -144,7 +148,7 @@ resource "aws_vpc_security_group_ingress_rule" "db_from_app" {
   from_port                    = 3306
   to_port                      = 3306
   ip_protocol                  = "tcp"
-  description                  = "앱의 커넥션 풀"
+  description                  = "app connection pool"
 }
 
 /*
@@ -158,7 +162,7 @@ resource "aws_vpc_security_group_ingress_rule" "exporters_from_mon" {
     app_cadvisor   = { sg = aws_security_group.app.id, port = 8082, desc = "cAdvisor" }
     batch_node     = { sg = aws_security_group.batch.id, port = 9100, desc = "node_exporter" }
     batch_cadvisor = { sg = aws_security_group.batch.id, port = 8082, desc = "cAdvisor" }
-    batch_mgmt     = { sg = aws_security_group.batch.id, port = 8081, desc = "액추에이터" }
+    batch_mgmt     = { sg = aws_security_group.batch.id, port = 8081, desc = "actuator" }
   }
 
   security_group_id            = each.value.sg
@@ -185,7 +189,7 @@ resource "aws_vpc_security_group_ingress_rule" "loki_from_hosts" {
   from_port                    = 3100
   to_port                      = 3100
   ip_protocol                  = "tcp"
-  description                  = "Alloy 로그 전송"
+  description                  = "Alloy log push"
 }
 
 # 배치가 DB 에 못 붙으면 아무 일도 못 한다.
@@ -195,7 +199,7 @@ resource "aws_vpc_security_group_ingress_rule" "db_from_batch" {
   from_port                    = 3306
   to_port                      = 3306
   ip_protocol                  = "tcp"
-  description                  = "배치의 커넥션 풀"
+  description                  = "batch connection pool"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "db_from_mon" {
@@ -213,7 +217,7 @@ resource "aws_vpc_security_group_ingress_rule" "cache_from_app" {
   from_port                    = 6379
   to_port                      = 6379
   ip_protocol                  = "tcp"
-  description                  = "앱의 캐시 접근"
+  description                  = "app cache access"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "cache_from_mon" {
@@ -244,5 +248,5 @@ resource "aws_vpc_security_group_egress_rule" "all" {
   security_group_id = each.value
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
-  description       = "전체 허용"
+  description       = "allow all outbound"
 }

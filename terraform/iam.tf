@@ -37,17 +37,17 @@ resource "aws_iam_role" "instance" {
 
 # SSM Session Manager 접속과 에이전트 동작에 필요하다.
 resource "aws_iam_role_policy_attachment" "ssm_core" {
-  for_each = aws_iam_role.instance
+  for_each = local.instance_roles
 
-  role       = each.value.name
+  role       = aws_iam_role.instance[each.key].name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_instance_profile" "instance" {
-  for_each = aws_iam_role.instance
+  for_each = local.instance_roles
 
   name = "${var.project}-${each.key}"
-  role = each.value.name
+  role = aws_iam_role.instance[each.key].name
 }
 
 /*
