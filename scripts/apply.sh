@@ -80,7 +80,7 @@ terraform apply -input=false "$@"
 #
 #    start.sh 는 재가동 때 같은 일을 한다. 이쪽은 신규 구축 경로다.
 log "4. 엔드포인트 SSM 반영"
-for pair in "db-endpoint:db_endpoint" "cache-endpoint:cache_endpoint"; do
+for pair in "db-endpoint:db_endpoint" "cache-endpoint:cache_endpoint" "cdn-domain:cdn_domain"; do
   name="${pair%%:*}"
   out=$(terraform output -raw "${pair##*:}")
   cur=$(aws ssm get-parameter --name "/$PROJECT/$name" --region "$REGION" \

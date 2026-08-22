@@ -15,6 +15,7 @@ sec() { aws ssm get-parameter --name "$P/$1" --region "$R" --with-decryption --q
 GIT_SHA=$(get current-sha)
 DB_ENDPOINT=$(get db-endpoint)
 CACHE_ENDPOINT=$(get cache-endpoint)
+CDN_DOMAIN=$(get cdn-domain)
 LOKI_ENDPOINT=$(get loki-endpoint)
 DB_PASSWORD=$(sec db-password)
 GHCR_TOKEN=$(sec ghcr-token)
@@ -30,6 +31,7 @@ cat > /opt/${project}/.env <<ENV
 GIT_SHA=$GIT_SHA
 LOKI_ENDPOINT=$LOKI_ENDPOINT
 CACHE_ENDPOINT=$CACHE_ENDPOINT
+CDN_DOMAIN=$CDN_DOMAIN
 DB_ENDPOINT=$DB_ENDPOINT
 DB_PASSWORD=$DB_PASSWORD
 APP_INSTANCE_ID=$INSTANCE_ID

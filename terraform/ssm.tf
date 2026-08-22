@@ -41,6 +41,22 @@ resource "aws_ssm_parameter" "db_endpoint" {
 }
 
 /*
+ * 앱이 이미지 URL 을 조립할 때 붙이는 CDN 주소 (이미지 저장소 설계 3장).
+ * 도메인을 안 붙인 배포는 CloudFront 가 매번 새 dxxxx.cloudfront.net 을 발급한다.
+ * 재구축마다 앱 설정을 손으로 고치지 않으려고 여기를 거친다.
+ */
+resource "aws_ssm_parameter" "cdn_domain" {
+  name        = "${local.ssm_prefix}/cdn-domain"
+  description = "CloudFront domain for image URLs"
+  type        = "String"
+  value       = "unset"
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+/*
  * 앱과 redis_exporter 가 붙을 주소. RDS 와 같은 이유로 복원 시 바뀔 수 있다.
  * 앱에는 VALKEY_HOST 라는 이름으로 들어간다. 앱이 로컬 compose 와 변수명을 맞춰 둔 것을 따른다.
  */
