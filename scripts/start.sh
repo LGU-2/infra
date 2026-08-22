@@ -15,6 +15,12 @@ REGION="${AWS_REGION:-ap-northeast-2}"
 DESIRED="${DESIRED:-1}"
 
 log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
+
+# stop.sh 가 disable-alarm-actions 로 꺼 둔 것을 되돌린다.
+enable_alarms() {
+  aws cloudwatch enable-alarm-actions --region "$REGION" \
+    --alarm-names "$PROJECT-healthy-host-count" "$PROJECT-monitoring-status"
+}
 started=$(date +%s)
 
 # 1. RDS 와 모니터링을 함께 올린다. 서로 무관하다.
@@ -94,11 +100,18 @@ while true; do
     --query 'length(TargetHealthDescriptions[?TargetHealth.State==`healthy`])' --output text)
   [ "$healthy" -ge "$DESIRED" ] && break
   if [ "$(date +%s)" -ge "$deadline" ]; then
+    # 실패해도 알림은 되살린다. 이 상태는 진짜 장애라 알람이 우는 것이 맞다.
+    enable_alarms
     log "   healthy $healthy / $DESIRED. 상한 초과. 앱 로그를 확인하라"
     exit 1
   fi
   sleep 15
 done
+
+# 5. stop.sh 가 꺼 둔 알림을 되살린다.
+#    healthy 를 확인한 뒤에 켠다. 먼저 켜면 기동 중인 구간이 장애로 잡힌다.
+log "5. 알람 알림 재개"
+enable_alarms
 
 log "재가동 완료. 총 $(( $(date +%s) - started ))초"
 log "이 값을 OPS-1-14 실측치로 기록한다"

@@ -16,3 +16,7 @@ aws_profile = "freshmarket"
 # aws sts get-caller-identity --profile freshmarket 로 확인한 계정 ID 를 넣는다.
 # 자격증명이 여기 없는 계정을 가리키면 plan 이 멈춘다.
 allowed_account_ids = ["000000000000"]
+
+# critical 알림을 받을 이메일. 비우면 이메일 구독을 만들지 않는다.
+# CloudWatch 알람은 SNS 로만 가므로, 이것과 Chatbot 둘 다 없으면 그 알람들이 갈 곳이 없다.
+alert_email = ""

@@ -15,6 +15,17 @@ REGION="${AWS_REGION:-ap-northeast-2}"
 
 log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
 
+# 0. 알람 알림을 먼저 끈다.
+#
+#    desired 0 은 HealthyHostCount 를 0 으로 만들고, 모니터링 중지는 StatusCheckFailed 를 올린다.
+#    둘 다 critical 이라 세션을 끊을 때마다 장애가 아닌 알림이 두 번씩(발생과 복구) 간다.
+#    오탐이 쌓이면 진짜 알람을 무시하게 되므로 여기서 막는다.
+#
+#    알람 자체는 지우지 않는다. 알림만 끄고 상태 기록은 계속 남긴다.
+log "0. 알람 알림 중지"
+aws cloudwatch disable-alarm-actions --region "$REGION" \
+  --alarm-names "$PROJECT-healthy-host-count" "$PROJECT-monitoring-status"
+
 # 1. 앱을 먼저 내린다.
 #    stop-instances 를 쓰면 ASG 가 비정상으로 보고 교체해 세션을 끝낼 수 없다 (INF-23).
 log "1. ASG desired 0"
