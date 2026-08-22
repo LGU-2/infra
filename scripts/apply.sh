@@ -69,6 +69,31 @@ cd "$ROOT/terraform"
 terraform init -input=false -backend-config=backend.hcl > /dev/null
 terraform apply -input=false "$@"
 
+# 4. 엔드포인트를 SSM 에 실어 준다.
+#
+#    Terraform 은 이 값을 만들기만 하고 채우지 않는다. ignore_changes = [value] 가 걸려 있어서다.
+#    RDS 복원은 항상 새 인스턴스를 만들어 주소가 바뀌는데(INF-26), 그때 스크립트가 갱신한 값을
+#    다음 apply 가 되돌리면 안 되기 때문이다.
+#
+#    그 대가로 최초 1회를 채울 주체가 없었다. 신규 구축 직후 두 값이 unset 으로 남아
+#    앱이 jdbc:mysql://unset:3306 으로 붙으려 한다. 여기서 메운다.
+#
+#    start.sh 는 재가동 때 같은 일을 한다. 이쪽은 신규 구축 경로다.
+log "4. 엔드포인트 SSM 반영"
+for pair in "db-endpoint:db_endpoint" "cache-endpoint:cache_endpoint"; do
+  name="${pair%%:*}"
+  out=$(terraform output -raw "${pair##*:}")
+  cur=$(aws ssm get-parameter --name "/$PROJECT/$name" --region "$REGION" \
+    --query 'Parameter.Value' --output text 2>/dev/null || echo unset)
+  if [ "$out" = "$cur" ]; then
+    log "   $name 그대로"
+  else
+    aws ssm put-parameter --name "/$PROJECT/$name" --value "$out" \
+      --type String --overwrite --region "$REGION" > /dev/null
+    log "   $name 갱신"
+  fi
+done
+
 echo
 log "완료. 다음은 출력값을 GitHub 에 넣는 것이다"
 log "  terraform output github_role_arns   deploy 값을 fm-backend 의 AWS_DEPLOY_ROLE_ARN 변수로"
