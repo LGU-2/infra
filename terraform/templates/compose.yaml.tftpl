@@ -12,8 +12,10 @@ services:
       DB_URL: "jdbc:mysql://$${DB_ENDPOINT}:3306/${db_name}?connectTimeout=3000&socketTimeout=10000"
       DB_USERNAME: "${db_username}"
       DB_PASSWORD: "$${DB_PASSWORD}"
-      # 캐시 클라이언트 의존성이 들어오면 이 값을 쓴다. 지금은 아무도 읽지 않는다
-      CACHE_ENDPOINT: "$${CACHE_ENDPOINT}"
+      # 이름을 앱에 맞춘다. 앱은 로컬 compose 와 같은 변수를 써야 해서 VALKEY_HOST 로 정했다.
+      # 값은 SSM cache-endpoint 에서 온다. 복원으로 주소가 바뀌면 refresh-env 가 따라잡는다.
+      VALKEY_HOST: "$${CACHE_ENDPOINT}"
+      VALKEY_PORT: "6379"
       APP_NAME: "${project}"
       APP_INSTANCE_ID: "$${APP_INSTANCE_ID}"
       TRACE_SAMPLE_RATE: "0.1"

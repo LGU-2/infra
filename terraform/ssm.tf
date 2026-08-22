@@ -53,10 +53,13 @@ resource "aws_ssm_parameter" "db_endpoint" {
   }
 }
 
-# redis_exporter 가 붙을 주소. RDS 와 같은 이유로 복원 시 바뀔 수 있다.
+/*
+ * 앱과 redis_exporter 가 붙을 주소. RDS 와 같은 이유로 복원 시 바뀔 수 있다.
+ * 앱에는 VALKEY_HOST 라는 이름으로 들어간다. 앱이 로컬 compose 와 변수명을 맞춰 둔 것을 따른다.
+ */
 resource "aws_ssm_parameter" "cache_endpoint" {
   name        = "${local.ssm_prefix}/cache-endpoint"
-  description = "cache endpoint for monitoring"
+  description = "cache endpoint for app and monitoring"
   type        = "String"
   value       = "unset"
 
