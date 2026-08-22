@@ -94,6 +94,25 @@ for pair in "db-endpoint:db_endpoint" "cache-endpoint:cache_endpoint"; do
   fi
 done
 
+# 5. 모니터링이 새 엔드포인트를 다시 읽게 한다.
+#
+#    모니터링은 ASG 도 아니고 deploy.sh 대상도 아니라, 스스로 갱신할 계기가 없다.
+#    부팅 때 읽은 값이 unset 이면 익스포터가 unset:3306 으로 붙으려다 실패하는데,
+#    인스턴스는 살아 있어 monitoring-status 알람도 안 울린다. 지표만 조용히 사라진다.
+log "5. 모니터링 .env 갱신"
+mon_id=$(aws ec2 describe-instances --region "$REGION" \
+  --filters "Name=tag:Role,Values=monitoring" "Name=instance-state-name,Values=running" \
+  --query 'Reservations[0].Instances[0].InstanceId' --output text)
+if [ "$mon_id" != "None" ] && [ -n "$mon_id" ]; then
+  aws ssm send-command --instance-ids "$mon_id" --document-name AWS-RunShellScript \
+    --region "$REGION" \
+    --parameters "commands=[\"set -e\",\"/usr/local/bin/$PROJECT-refresh-monitoring-env\",\"systemctl restart observability.service\"]" \
+    --query 'Command.CommandId' --output text > /dev/null
+  log "   $mon_id 에 요청함"
+else
+  log "   실행 중인 모니터링 인스턴스가 없다"
+fi
+
 echo
 log "완료. 다음은 출력값을 GitHub 에 넣는 것이다"
 log "  terraform output github_role_arns   deploy 값을 fm-backend 의 AWS_DEPLOY_ROLE_ARN 변수로"

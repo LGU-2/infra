@@ -42,7 +42,7 @@ Terraform 쪽에 `ignore_changes` 를 걸어 두었다. 자세한 것은 [`docs/
 
 | | 언제 |
 |---|---|
-| `apply.sh` | 인프라를 올린다. bootstrap 순서와 시크릿 검사를 흡수한다 |
+| `apply.sh` | 인프라를 올린다. bootstrap 순서, 시크릿 검사, 엔드포인트 반영을 흡수한다 |
 | `deploy.sh` | `main` 병합 시 워크플로가 부른다 |
 | `rollback.sh` | 이전 SHA 로 배포를 다시 한다 |
 | `preflight.sh` | 배포 직전 차단 게이트(G-RELEASE) |

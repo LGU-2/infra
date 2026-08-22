@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# SSM 에서 값을 읽어 관측 스택의 .env 와 웹훅 파일을 다시 만든다.
+#
+# 최초 부팅과 이후 갱신이 같은 코드를 쓴다 (MNT-3-01).
+# user-data 는 최초 부팅에만 돌아서, 이 스크립트가 없으면 RDS 복원으로 주소가 바뀌어도
+# 익스포터가 옛 주소로 붙으려 한다. 인스턴스는 살아 있으므로 monitoring-status 알람도 안 울린다.
+# DB 와 캐시 지표가 조용히 사라진다 (INF-26).
+set -euo pipefail
+
+P=/${project}
+R=${region}
+D=/opt/${project}/infra/observability
+
+get() { aws ssm get-parameter --name "$P/$1" --region "$R" --query 'Parameter.Value' --output text; }
+sec() { aws ssm get-parameter --name "$P/$1" --region "$R" --with-decryption --query 'Parameter.Value' --output text; }
+
+# 웹훅 URL 은 사실상 자격증명이다. 파일로 떨어뜨려 Alertmanager 가 읽게 한다.
+install -d -m 0700 /run/secrets
+for name in critical warning watchdog; do
+  sec "slack-webhook-$name" > "/run/secrets/slack_webhook_$name"
+  chmod 600 "/run/secrets/slack_webhook_$name"
+done
+
+install -d -m 0755 "$D"
+cat > "$D/.env" <<ENV
+DB_ENDPOINT=$(get db-endpoint)
+CACHE_ENDPOINT=$(get cache-endpoint)
+DB_EXPORTER_PASSWORD=$(sec db-exporter-password)
+DB_EXPORTER_USER=${db_username}
+ENV
+chmod 600 "$D/.env"

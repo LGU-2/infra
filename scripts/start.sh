@@ -68,6 +68,17 @@ if [ "$batch_id" != "None" ] && [ -n "$batch_id" ]; then
     --query 'Command.CommandId' --output text > /dev/null
 fi
 
+mon_id=$(aws ec2 describe-instances --region "$REGION" \
+  --filters "Name=tag:Role,Values=monitoring" "Name=instance-state-name,Values=running" \
+  --query 'Reservations[0].Instances[0].InstanceId' --output text)
+if [ "$mon_id" != "None" ] && [ -n "$mon_id" ]; then
+  log "2. 모니터링 .env 갱신 $mon_id"
+  aws ssm send-command --instance-ids "$mon_id" --document-name AWS-RunShellScript \
+    --region "$REGION" \
+    --parameters "commands=[\"set -e\",\"/usr/local/bin/$PROJECT-refresh-monitoring-env\",\"systemctl restart observability.service\"]" \
+    --query 'Command.CommandId' --output text > /dev/null
+fi
+
 log "3. ASG desired $DESIRED"
 aws autoscaling set-desired-capacity \
   --auto-scaling-group-name "$PROJECT-app" \
