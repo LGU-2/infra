@@ -102,34 +102,18 @@ resource "aws_s3_bucket_public_access_block" "tfstate" {
 }
 
 /*
- * 시크릿을 Secrets Manager 가 아니라 Parameter Store 에 둔다 (INF-11).
- * Secrets Manager 는 시크릿당 월 0.40 USD 이고 표준 파라미터는 무료다.
+ * 시크릿 8개는 Terraform 이 관리하지 않는다. apply.sh 1단계가 CLI 로 만든다.
  *
- * SecureString 의 실제 값은 Terraform 이 넣지 않는다.
- * 넣으면 상태 파일에 평문으로 남는다. 자리만 만들고 값은 CLI 로 채운다.
+ * Parameter Store 를 고른 이유는 그대로다 (INF-11). Secrets Manager 는 시크릿당 월 0.40 USD 이고
+ * 표준 파라미터는 무료다.
+ *
+ * Terraform 에서 뺀 이유는 상태 파일 때문이다. 여기서 값을 넣지 않고 ignore_changes 를 걸어도
+ * refresh 가 GetParameter 를 복호화까지 해서 읽어 상태에 적는다. ignore_changes 는 차이 계산에서만
+ * 빼 줄 뿐 읽기를 막지 못한다. 그래서 CLI 로 실제 값을 채운 다음 apply 를 한 번만 돌려도
+ * 이 로컬 상태 파일에 평문으로 남았다.
+ *
+ * Terraform 이 하던 일은 값이 아니라 이름의 존재 보장뿐이었다. 그건 스크립트가 더 싸게 한다.
  */
-resource "aws_ssm_parameter" "secure" {
-  for_each = {
-    "jwt-signing-key"        = "JWT signing key. rotated by kid"
-    "db-password"            = "RDS master password"
-    "db-exporter-password"   = "mysqld_exporter password. same as master"
-    "github-token"           = "used by monitoring to clone observability config"
-    "ghcr-token"             = "used by instances to pull images from GHCR. needs read:packages"
-    "slack-webhook-critical" = "Alertmanager critical channel"
-    "slack-webhook-warning"  = "Alertmanager warning channel"
-    "slack-webhook-watchdog" = "Alertmanager watchdog channel"
-  }
-
-  name        = "/${var.project}/${each.key}"
-  description = each.value
-  type        = "SecureString"
-  value       = "unset"
-
-  # 실제 값은 aws ssm put-parameter 로 넣는다. 상태 파일에 남기지 않는다.
-  lifecycle {
-    ignore_changes = [value]
-  }
-}
 
 output "bucket" {
   description = "terraform/backend.hcl 의 bucket 값"

@@ -21,7 +21,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
-# 1. bootstrap. 상태 버킷과 시크릿 자리를 만든다.
+# 1. bootstrap. 상태 버킷을 만든다.
 log "1. bootstrap"
 cd "$ROOT/bootstrap"
 
@@ -36,10 +36,9 @@ bootstrap 상태 파일이 없는데 버킷 tfstate-$PROJECT 은 이미 있다.
 
   cd bootstrap
   terraform import aws_s3_bucket.tfstate tfstate-$PROJECT
-  for k in jwt-signing-key db-password db-exporter-password github-token \\
-           ghcr-token slack-webhook-critical slack-webhook-warning slack-webhook-watchdog; do
-    terraform import "aws_ssm_parameter.secure[\\"\$k\\"]" "/$PROJECT/\$k"
-  done
+
+시크릿 8개는 Terraform 이 관리하지 않으므로 import 하지 않는다.
+아래 3단계가 없는 것만 다시 만든다.
 EOF
 )"
 fi
@@ -47,8 +46,32 @@ fi
 terraform init -input=false > /dev/null
 terraform apply -auto-approve -input=false
 
-# 2. 시크릿 여덟 개가 다 찼는지 본다.
-log "2. 시크릿 확인"
+# 2. 시크릿 자리를 만든다. 없는 것만 만들고 있는 것은 건드리지 않는다.
+#
+# Terraform 이 아니라 여기서 하는 이유는 bootstrap/main.tf 주석에 있다.
+# 요약하면 refresh 가 값을 복호화해 읽어 상태 파일에 평문으로 적기 때문이다.
+#
+# 값은 여기서 넣지 않는다. unset 으로 자리만 만들고 3단계가 빈 것을 잡아낸다.
+log "2. 시크릿 자리"
+while IFS='|' read -r key desc; do
+  [ -z "$key" ] && continue
+  aws ssm get-parameter --name "/$PROJECT/$key" --region "$REGION" > /dev/null 2>&1 && continue
+  aws ssm put-parameter --name "/$PROJECT/$key" --region "$REGION" \
+    --type SecureString --value unset --description "$desc" > /dev/null
+  log "   $key 생성"
+done <<'SECRETS'
+jwt-signing-key|JWT signing key. rotated by kid
+db-password|RDS master password
+db-exporter-password|mysqld_exporter password. same as master
+github-token|used by monitoring to clone observability config
+ghcr-token|used by instances to pull images from GHCR. needs read:packages
+slack-webhook-critical|Alertmanager critical channel
+slack-webhook-warning|Alertmanager warning channel
+slack-webhook-watchdog|Alertmanager watchdog channel
+SECRETS
+
+# 3. 시크릿 여덟 개가 다 찼는지 본다.
+log "3. 시크릿 확인"
 unset_names=$(aws ssm get-parameters-by-path --path "/$PROJECT" --region "$REGION" \
   --with-decryption --query 'Parameters[?Value==`unset`].Name' --output text)
 
@@ -63,13 +86,13 @@ if [ -n "$unset_names" ]; then
   exit 1
 fi
 
-# 3. 본 구성. 여기부터 과금이 시작된다.
-log "3. terraform"
+# 4. 본 구성. 여기부터 과금이 시작된다.
+log "4. terraform"
 cd "$ROOT/terraform"
 terraform init -input=false -backend-config=backend.hcl > /dev/null
 terraform apply -input=false "$@"
 
-# 4. 엔드포인트를 SSM 에 실어 준다.
+# 5. 엔드포인트를 SSM 에 실어 준다.
 #
 #    Terraform 은 이 값을 만들기만 하고 채우지 않는다. ignore_changes = [value] 가 걸려 있어서다.
 #    RDS 복원은 항상 새 인스턴스를 만들어 주소가 바뀌는데(INF-26), 그때 스크립트가 갱신한 값을
@@ -79,7 +102,7 @@ terraform apply -input=false "$@"
 #    앱이 jdbc:mysql://unset:3306 으로 붙으려 한다. 여기서 메운다.
 #
 #    start.sh 는 재가동 때 같은 일을 한다. 이쪽은 신규 구축 경로다.
-log "4. 엔드포인트 SSM 반영"
+log "5. 엔드포인트 SSM 반영"
 for pair in "db-endpoint:db_endpoint" "cache-endpoint:cache_endpoint" "cdn-domain:cdn_domain"; do
   name="${pair%%:*}"
   out=$(terraform output -raw "${pair##*:}")
@@ -94,12 +117,12 @@ for pair in "db-endpoint:db_endpoint" "cache-endpoint:cache_endpoint" "cdn-domai
   fi
 done
 
-# 5. 모니터링이 새 엔드포인트를 다시 읽게 한다.
+# 6. 모니터링이 새 엔드포인트를 다시 읽게 한다.
 #
 #    모니터링은 ASG 도 아니고 deploy.sh 대상도 아니라, 스스로 갱신할 계기가 없다.
 #    부팅 때 읽은 값이 unset 이면 익스포터가 unset:3306 으로 붙으려다 실패하는데,
 #    인스턴스는 살아 있어 monitoring-status 알람도 안 울린다. 지표만 조용히 사라진다.
-log "5. 모니터링 .env 갱신"
+log "6. 모니터링 .env 갱신"
 mon_id=$(aws ec2 describe-instances --region "$REGION" \
   --filters "Name=tag:Role,Values=monitoring" "Name=instance-state-name,Values=running" \
   --query 'Reservations[0].Instances[0].InstanceId' --output text)
