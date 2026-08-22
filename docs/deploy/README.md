@@ -7,6 +7,7 @@
 | `scripts/preflight.sh` | 이 저장소 | G-RELEASE. 런타임 상태 조회라 LLM 이 판정할 수 없다 |
 | `scripts/deploy.sh` | 이 저장소 | ASG 이름과 SSM 경로가 Terraform 이 정한 값이다 |
 | `scripts/rollback.sh` | 이 저장소 | 이전 SHA 로 배포를 다시 하는 것뿐이다 |
+| `scripts/apply.sh` | 이 저장소 | 올린다. bootstrap 순서와 시크릿 검사를 흡수한다 |
 | `scripts/stop.sh` `start.sh` | 이 저장소 | 세션 단위로 껐다 켠다 |
 | `scripts/destroy.sh` | 이 저장소 | 전부 지운다 |
 | `backend-deploy-workflow.yml` | 이 저장소가 원본 | fm-backend 에 복사해서 쓴다 |
@@ -59,36 +60,46 @@ Terraform 이 값이나 desired 를 건드리면 배포가 깨진다. 그래서 
 
 ## 처음 적용할 때
 
-`bootstrap/` 은 **파괴를 견디는 계층**이다. 상태 버킷과 시크릿 8개를 갖는다. 한 번 만들면 `destroy.sh` 를 몇 번 돌리든 그대로 남으므로, **아래 1~2번은 계정을 새로 쓸 때만 한다.**
+```bash
+./scripts/apply.sh
+```
+
+`bootstrap` 을 먼저 돌리고, 시크릿 8개가 다 찼는지 본 뒤, 본 구성을 올린다. **순서를 기억할 필요가 없다.**
+
+두 구성이 갈라져 있어 Terraform 이 순서를 세워 주지 못한다. 시크릿을 `bootstrap/` 에 둔 것은 `destroy.sh` 를 견디게 하려는 것이고(표준 파라미터라 유지 비용이 0 이다), 그 대가로 생긴 의존을 스크립트가 흡수한다.
+
+시크릿이 비어 있으면 **과금이 시작되기 전에** 멈추고 이름과 명령어를 찍는다.
+
+```
+아직 값이 없는 시크릿이 있다.
+
+  /freshmarket/db-password
+  /freshmarket/ghcr-token
+  ...
+```
+
+값을 넣고 다시 실행하면 된다. `bootstrap apply` 는 멱등해서 몇 번을 돌려도 no-op 이다.
+
+| 이름 | 출처 |
+|---|---|
+| `db-password` | 직접 정한다. RDS 마스터 |
+| `db-exporter-password` | 직접 정한다. **마스터와 다른 값으로.** 감시 계정이라 권한이 낮다 |
+| `jwt-signing-key` | `openssl rand -base64 48` |
+| `github-token` | PAT. `fm-infra` **Contents Read-only.** 모니터링이 클론만 한다 |
+| `ghcr-token` | classic PAT, **`read:packages`.** 인스턴스가 이미지를 받는다 |
+| `slack-webhook-*` | Incoming Webhook 3개. 채널이 달라야 의미가 있다 |
+
+**`db-password` 만 Terraform 이 따로 막는다**(`rds.tf` 의 postcondition). 나머지 일곱은 `unset` 이어도 apply 가 통과하고 인스턴스가 뜬 뒤에야 드러난다. GHCR 로그인 실패로 컨테이너가 안 뜨거나 Slack 알림이 조용히 안 가는 식이다. 그래서 스크립트가 여덟 개를 한 번에 본다.
+
+**다른 기계에서 클론했다면** `bootstrap/terraform.tfstate` 가 없다. gitignore 되어 따라오지 않는다. 그대로 돌리면 이미 있는 버킷을 다시 만들려다 죽으므로, 스크립트가 그 상황을 먼저 감지해 `terraform import` 명령을 알려 준다.
+
+올린 뒤에는 출력값을 GitHub 에 넣는다.
 
 ```bash
-# 1. 상태 버킷과 시크릿 자리
-cd bootstrap && terraform init && terraform apply
-
-# 2. 시크릿 8개에 실제 값을 넣는다. 리소스가 있어야 하므로 1번 뒤에 한다.
-#    빼먹으면 4번이 precondition 에서 막힌다.
-P=/freshmarket
-aws ssm put-parameter --overwrite --type SecureString --name $P/db-password          --value '<RDS 마스터 비밀번호>'
-aws ssm put-parameter --overwrite --type SecureString --name $P/db-exporter-password --value '<감시 계정 비밀번호>'
-aws ssm put-parameter --overwrite --type SecureString --name $P/github-token         --value '<PAT. fm-infra Contents Read-only>'
-aws ssm put-parameter --overwrite --type SecureString --name $P/ghcr-token           --value '<classic PAT. read:packages>'
-aws ssm put-parameter --overwrite --type SecureString --name $P/slack-webhook-critical --value '<웹훅>'
-aws ssm put-parameter --overwrite --type SecureString --name $P/slack-webhook-warning  --value '<웹훅>'
-aws ssm put-parameter --overwrite --type SecureString --name $P/slack-webhook-watchdog --value '<웹훅>'
-aws ssm put-parameter --overwrite --type SecureString --name $P/jwt-signing-key --value "$(openssl rand -base64 48)"
-
-# 3. 남은 것이 없는지 본다. 아무것도 안 나와야 한다.
-aws ssm get-parameters-by-path --path $P --with-decryption \
-  --query 'Parameters[?Value==`unset`].Name' --output text
-
-# 4. 인프라
-cd ../terraform && terraform init -backend-config=backend.hcl && terraform apply
-
-# 5. 출력값을 GitHub 에 넣는다
+cd terraform
 terraform output github_role_arns   # deploy 값을 fm-backend 의 AWS_DEPLOY_ROLE_ARN 변수로
 terraform output cdn_domain         # 앱의 cdn.base-url 로
 
-# 6. 워크플로를 backend 에 복사한다
 cp docs/deploy/backend-deploy-workflow.yml ../backend/.github/workflows/deploy.yml
 ```
 

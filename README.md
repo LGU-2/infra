@@ -6,7 +6,7 @@ fresh-market 백엔드의 인프라다. Terraform 으로 AWS 를 만들고, `mai
 
 | 하려는 것 | 볼 곳 |
 |---|---|
-| 처음 올린다 | [`docs/deploy/README.md`](docs/deploy/README.md) 의 "처음 적용할 때" |
+| 처음 올린다 | `./scripts/apply.sh`. 근거는 [`docs/deploy/README.md`](docs/deploy/README.md) |
 | 껐다 켠다, 지운다 | 같은 문서의 "세션 단위로", "전부 지운다" |
 | 배포가 어떻게 도는지 | 같은 문서 |
 | 왜 이렇게 정했는지 | [`docs/system-design/`](docs/system-design/) |
@@ -16,12 +16,14 @@ fresh-market 백엔드의 인프라다. Terraform 으로 AWS 를 만들고, `mai
 
 ```
 terraform/       AWS 리소스. 단일 환경이라 모듈로 쪼개지 않는다
-bootstrap/       상태 버킷 전용. 닭과 달걀이라 따로 두고 로컬 상태로 관리한다
+bootstrap/       파괴를 견디는 계층. 상태 버킷과 시크릿 8개. 로컬 상태로 관리한다
 observability/   모니터링 인스턴스에서 도는 것들. Terraform 이 아니라 git clone 으로 배포한다
 scripts/         런타임을 다루는 것들. Terraform 이 건드리면 안 되는 영역이다
 docs/            설계 근거와 판정 기준
 verify.sh        G-LOCAL 진입점. 본체는 common 저장소에 있다
 ```
+
+**`bootstrap/` 이 따로인 이유**는 둘이다. 상태 버킷은 자기 자신을 상태에 담을 수 없어 닭과 달걀이고, 시크릿은 `destroy.sh` 를 견뎌야 한다. SSM 표준 파라미터는 무료라 지워도 아끼는 것이 없는데 지우면 재구축 때 8개를 손으로 다시 넣어야 한다. `./scripts/apply.sh` 가 두 구성의 순서를 흡수한다.
 
 **`observability/` 를 Terraform 이 갖지 않는 이유**는 알람 임계값을 고칠 때마다 `apply` 를 하지 않기 위해서다(`INF-32`, `OPS-2-18`). 모니터링 인스턴스가 이 저장소를 클론하고, 설정을 고치면 거기서 `git pull` 한다.
 
@@ -40,6 +42,7 @@ Terraform 쪽에 `ignore_changes` 를 걸어 두었다. 자세한 것은 [`docs/
 
 | | 언제 |
 |---|---|
+| `apply.sh` | 인프라를 올린다. bootstrap 순서와 시크릿 검사를 흡수한다 |
 | `deploy.sh` | `main` 병합 시 워크플로가 부른다 |
 | `rollback.sh` | 이전 SHA 로 배포를 다시 한다 |
 | `preflight.sh` | 배포 직전 차단 게이트(G-RELEASE) |
