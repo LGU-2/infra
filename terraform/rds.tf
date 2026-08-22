@@ -133,9 +133,24 @@ resource "aws_db_instance" "main" {
   }
 }
 
-# apply 전에 aws ssm put-parameter 로 실제 값을 넣어 두어야 한다.
+/*
+ * 파라미터 자체는 bootstrap/ 이 만든다. 여기서는 이름으로만 참조한다.
+ * 시크릿을 그쪽에 둔 이유는 destroy 를 견디게 하기 위해서다. 표준 파라미터라 유지 비용이 0 인데,
+ * 지우면 재구축 때 8개를 손으로 다시 넣어야 한다.
+ *
+ * 구성이 갈라져 Terraform 이 순서를 세워 주지 못한다. bootstrap 을 먼저 apply 해야 한다.
+ * 안 하면 아래 lifecycle 의 안내가 아니라 "couldn't find resource" 만 보게 된다.
+ * data 소스가 precondition 보다 먼저 평가되기 때문이다.
+ */
 data "aws_ssm_parameter" "db_password" {
-  name = aws_ssm_parameter.secure["db-password"].name
+  name = "${local.ssm_prefix}/db-password"
+
+  lifecycle {
+    postcondition {
+      condition     = self.value != "unset"
+      error_message = "aws ssm put-parameter --name ${self.name} --type SecureString --value '<비밀번호>' --overwrite 를 먼저 실행하라."
+    }
+  }
 }
 
 /*

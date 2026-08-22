@@ -50,8 +50,8 @@
 | 대상 | 누가 |
 |---|---|
 | ASG, 시작 템플릿, 대상 그룹, 리스너 | Terraform |
-| **SSM 파라미터 리소스** | Terraform |
-| **SSM 파라미터의 값** | **스크립트** |
+| **SSM 파라미터 리소스** | Terraform (시크릿 8개는 `bootstrap/`) |
+| **SSM 파라미터의 값** | **스크립트**, 시크릿은 사람이 CLI 로 |
 | **desired capacity** | **스크립트** |
 | 대상 등록과 해제 | 스크립트 |
 
@@ -59,25 +59,36 @@ Terraform 이 값이나 desired 를 건드리면 배포가 깨진다. 그래서 
 
 ## 처음 적용할 때
 
+`bootstrap/` 은 **파괴를 견디는 계층**이다. 상태 버킷과 시크릿 8개를 갖는다. 한 번 만들면 `destroy.sh` 를 몇 번 돌리든 그대로 남으므로, **아래 1~2번은 계정을 새로 쓸 때만 한다.**
+
 ```bash
-# 1. 상태 버킷
+# 1. 상태 버킷과 시크릿 자리
 cd bootstrap && terraform init && terraform apply
 
-# 2. 시크릿을 채운다. 이걸 빼먹으면 3번이 precondition 에서 막힌다.
-for name in db-password db-exporter-password github-token \
-            jwt-signing-key slack-webhook-critical slack-webhook-warning slack-webhook-watchdog; do
-  aws ssm put-parameter --name "/freshmarket/$name" --type SecureString \
-    --value "<값>" --overwrite
-done
+# 2. 시크릿 8개에 실제 값을 넣는다. 리소스가 있어야 하므로 1번 뒤에 한다.
+#    빼먹으면 4번이 precondition 에서 막힌다.
+P=/freshmarket
+aws ssm put-parameter --overwrite --type SecureString --name $P/db-password          --value '<RDS 마스터 비밀번호>'
+aws ssm put-parameter --overwrite --type SecureString --name $P/db-exporter-password --value '<감시 계정 비밀번호>'
+aws ssm put-parameter --overwrite --type SecureString --name $P/github-token         --value '<PAT. fm-infra Contents Read-only>'
+aws ssm put-parameter --overwrite --type SecureString --name $P/ghcr-token           --value '<classic PAT. read:packages>'
+aws ssm put-parameter --overwrite --type SecureString --name $P/slack-webhook-critical --value '<웹훅>'
+aws ssm put-parameter --overwrite --type SecureString --name $P/slack-webhook-warning  --value '<웹훅>'
+aws ssm put-parameter --overwrite --type SecureString --name $P/slack-webhook-watchdog --value '<웹훅>'
+aws ssm put-parameter --overwrite --type SecureString --name $P/jwt-signing-key --value "$(openssl rand -base64 48)"
 
-# 3. 인프라
+# 3. 남은 것이 없는지 본다. 아무것도 안 나와야 한다.
+aws ssm get-parameters-by-path --path $P --with-decryption \
+  --query 'Parameters[?Value==`unset`].Name' --output text
+
+# 4. 인프라
 cd ../terraform && terraform init -backend-config=backend.hcl && terraform apply
 
-# 4. 출력값을 GitHub 에 넣는다
+# 5. 출력값을 GitHub 에 넣는다
 terraform output github_role_arns   # deploy 값을 fm-backend 의 AWS_DEPLOY_ROLE_ARN 변수로
 terraform output cdn_domain         # 앱의 cdn.base-url 로
 
-# 5. 워크플로를 backend 에 복사한다
+# 6. 워크플로를 backend 에 복사한다
 cp docs/deploy/backend-deploy-workflow.yml ../backend/.github/workflows/deploy.yml
 ```
 
@@ -119,10 +130,12 @@ cp docs/deploy/backend-deploy-workflow.yml ../backend/.github/workflows/deploy.y
 
 **destroy 가 끝나도 EBS 볼륨이 남는다.** `delete_on_termination = false` 인 모니터링 루트 볼륨이다. 관측 데이터를 지키려는 설정이라 Terraform 이 일부러 안 지운다. 스크립트가 따로 찾아 지운다.
 
-남는 것 셋은 정상이다.
+남는 것들은 정상이다.
 
+- **`bootstrap/` 이 갖는 것 전부.** tfstate 버킷과 **SecureString 8개**다. 대상이 아니라 그대로 살아남는다
 - **KMS 키 3개** (`aws/ebs`, `aws/rds`, `aws/ssm`). AWS 관리형이라 무료이고 삭제할 수 없다
-- **tfstate 버킷**. `bootstrap/` 소관이라 대상이 아니고 재구축에 그대로 쓴다
 - **IAM 역할이 0 이 아니면** Terraform 밖에서 만든 것이다. 콘솔 활동의 잔재일 수 있다
+
+**시크릿을 남기는 것이 의도다.** SSM 표준 파라미터는 무료라 지워도 아끼는 것이 없는데, 지우면 재구축 때 8개를 손으로 다시 넣어야 한다. 그래서 `bootstrap/` 계층에 둔다. 파괴하고 다시 올려도 **비밀 재입력이 없다.**
 
 마지막에 `terraform state` 가 아니라 **AWS 에 직접 조회해** 잔여를 센다. 상태와 실제가 어긋날 수 있다.

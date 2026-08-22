@@ -1,25 +1,12 @@
 /*
- * 시크릿을 Secrets Manager 가 아니라 Parameter Store 에 둔다 (INF-11).
- * Secrets Manager 는 시크릿당 월 0.40 USD 이고 표준 파라미터는 무료다.
+ * 런타임에 바뀌는 값들이다. 스크립트가 채우고 Terraform 은 자리만 만든다.
  *
- * SecureString 의 실제 값은 Terraform 이 넣지 않는다.
- * 넣으면 상태 파일에 평문으로 남는다. 자리만 만들고 값은 CLI 로 채운다.
+ * 시크릿(SecureString 8개)은 여기 없다. bootstrap/ 이 갖는다.
+ * 파괴해도 살아남아야 재구축 때 다시 넣지 않는다. 표준 파라미터라 유지 비용도 0 이다.
  */
 
 locals {
   ssm_prefix = "/${var.project}"
-
-  # 자리만 만들고 값은 밖에서 채우는 시크릿들
-  secure_params = {
-    "jwt-signing-key"        = "JWT signing key. rotated by kid"
-    "db-password"            = "RDS master password"
-    "db-exporter-password"   = "mysqld_exporter account. separate from master"
-    "github-token"           = "used by monitoring to clone observability config"
-    "ghcr-token"             = "used by instances to pull images from GHCR. needs read:packages"
-    "slack-webhook-critical" = "Alertmanager critical channel"
-    "slack-webhook-warning"  = "Alertmanager warning channel"
-    "slack-webhook-watchdog" = "Alertmanager watchdog channel"
-  }
 }
 
 /*
@@ -78,18 +65,4 @@ resource "aws_ssm_parameter" "loki_endpoint" {
   description = "Loki address for Alloy log push"
   type        = "String"
   value       = aws_instance.monitoring.private_ip
-}
-
-resource "aws_ssm_parameter" "secure" {
-  for_each = local.secure_params
-
-  name        = "${local.ssm_prefix}/${each.key}"
-  description = each.value
-  type        = "SecureString"
-  value       = "unset"
-
-  # 실제 값은 aws ssm put-parameter 로 넣는다. 상태 파일에 남기지 않는다.
-  lifecycle {
-    ignore_changes = [value]
-  }
 }

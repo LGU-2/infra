@@ -1,6 +1,12 @@
 /*
- * Terraform 상태를 담을 S3 버킷을 만든다.
- * 상태 버킷 자체는 상태에 담을 수 없어 닭과 달걀이라 이 구성만 로컬 상태로 돌린다.
+ * 파괴를 견디는 계층이다. destroy.sh 의 대상이 아니다.
+ *
+ * 상태 버킷이 여기 있는 것은 닭과 달걀이기 때문이다.
+ * 상태 버킷 자체는 상태에 담을 수 없어 이 구성만 로컬 상태로 돌린다.
+ *
+ * 시크릿도 여기 둔다. SSM 표준 파라미터는 무료라 파괴해도 아끼는 것이 없는데,
+ * 지우면 재구축 때 8개를 손으로 다시 넣어야 한다. 잃기만 한다.
+ *
  * 한 번 만들면 다시 실행할 일이 없다.
  */
 
@@ -95,7 +101,46 @@ resource "aws_s3_bucket_public_access_block" "tfstate" {
   restrict_public_buckets = true
 }
 
+/*
+ * 시크릿을 Secrets Manager 가 아니라 Parameter Store 에 둔다 (INF-11).
+ * Secrets Manager 는 시크릿당 월 0.40 USD 이고 표준 파라미터는 무료다.
+ *
+ * SecureString 의 실제 값은 Terraform 이 넣지 않는다.
+ * 넣으면 상태 파일에 평문으로 남는다. 자리만 만들고 값은 CLI 로 채운다.
+ */
+resource "aws_ssm_parameter" "secure" {
+  for_each = {
+    "jwt-signing-key"        = "JWT signing key. rotated by kid"
+    "db-password"            = "RDS master password"
+    "db-exporter-password"   = "mysqld_exporter account. separate from master"
+    "github-token"           = "used by monitoring to clone observability config"
+    "ghcr-token"             = "used by instances to pull images from GHCR. needs read:packages"
+    "slack-webhook-critical" = "Alertmanager critical channel"
+    "slack-webhook-warning"  = "Alertmanager warning channel"
+    "slack-webhook-watchdog" = "Alertmanager watchdog channel"
+  }
+
+  name        = "/${var.project}/${each.key}"
+  description = each.value
+  type        = "SecureString"
+  value       = "unset"
+
+  # 실제 값은 aws ssm put-parameter 로 넣는다. 상태 파일에 남기지 않는다.
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
 output "bucket" {
   description = "terraform/backend.hcl 의 bucket 값"
   value       = aws_s3_bucket.tfstate.id
 }
+
+/*
+ * 아직 안 채운 시크릿은 output 이 아니라 CLI 로 본다.
+ * 값을 참조하는 순간 sensitive 로 물들어, 이름 목록만 내보내려 해도 표시를 달아야 한다.
+ * 민감하지 않은 것에 민감 표시를 달면 그 표시의 의미가 흐려진다.
+ *
+ *   aws ssm get-parameters-by-path --path /freshmarket --with-decryption \
+ *     --query 'Parameters[?Value==`unset`].Name' --output text
+ */
