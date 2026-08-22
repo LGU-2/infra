@@ -112,7 +112,7 @@ resource "aws_ssm_parameter" "secure" {
   for_each = {
     "jwt-signing-key"        = "JWT signing key. rotated by kid"
     "db-password"            = "RDS master password"
-    "db-exporter-password"   = "mysqld_exporter account. separate from master"
+    "db-exporter-password"   = "mysqld_exporter password. same as master"
     "github-token"           = "used by monitoring to clone observability config"
     "ghcr-token"             = "used by instances to pull images from GHCR. needs read:packages"
     "slack-webhook-critical" = "Alertmanager critical channel"

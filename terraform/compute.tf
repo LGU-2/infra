@@ -50,6 +50,7 @@ locals {
     region           = var.region
     github_org       = var.github_org
     infra_repo       = var.github_infra_repo
+    db_username      = var.db_username
   })
 
   compose_args = {

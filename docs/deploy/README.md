@@ -83,11 +83,22 @@ Terraform 이 값이나 desired 를 건드리면 배포가 깨진다. 그래서 
 | 이름 | 출처 |
 |---|---|
 | `db-password` | 직접 정한다. RDS 마스터 |
-| `db-exporter-password` | 직접 정한다. **마스터와 다른 값으로.** 감시 계정이라 권한이 낮다 |
+| `db-exporter-password` | **`db-password` 와 같은 값.** 아래를 보라 |
 | `jwt-signing-key` | `openssl rand -base64 48` |
 | `github-token` | PAT. `fm-infra` **Contents Read-only.** 모니터링이 클론만 한다 |
 | `ghcr-token` | classic PAT, **`read:packages`.** 인스턴스가 이미지를 받는다 |
 | `slack-webhook-*` | Incoming Webhook 3개. 채널이 달라야 의미가 있다 |
+
+**`mysqld_exporter` 는 마스터 계정으로 붙는다.** 그래서 `db-exporter-password` 는 `db-password` 와 같아야 한다.
+
+전용 계정(`exporter`)을 쓰는 편이 권한상 옳지만, RDS 는 `CREATE USER` 를 자동으로 해 주지 않는다. 전용 계정을 쓰려면 재구축할 때마다 사람이 DB 에 붙어 계정을 만들어야 하는데, 그 절차가 어디에도 없으면 잊힌다. 그 대가로 **감시 도구가 DB 전권을 갖는다.**
+
+전용 계정으로 되돌리려면 RDS 기동 후 아래를 실행하고 `observability/compose.yaml` 의 `MYSQLD_EXPORTER_USER` 를 `exporter` 로 고정한다.
+
+```sql
+CREATE USER 'exporter'@'%' IDENTIFIED BY '<db-exporter-password>';
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'%';
+```
 
 **`db-password` 만 Terraform 이 따로 막는다**(`rds.tf` 의 postcondition). 나머지 일곱은 `unset` 이어도 apply 가 통과하고 인스턴스가 뜬 뒤에야 드러난다. GHCR 로그인 실패로 컨테이너가 안 뜨거나 Slack 알림이 조용히 안 가는 식이다. 그래서 스크립트가 여덟 개를 한 번에 본다.
 

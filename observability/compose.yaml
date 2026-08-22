@@ -87,7 +87,10 @@ services:
       - --mysqld.address=${DB_ENDPOINT}:3306
     environment:
       MYSQLD_EXPORTER_PASSWORD: ${DB_EXPORTER_PASSWORD}
-      MYSQLD_EXPORTER_USER: exporter
+      # 전용 계정을 따로 만들지 않고 마스터로 붙는다.
+      # RDS 는 CREATE USER 를 자동으로 해 주지 않아, 전용 계정을 쓰면 재구축마다 손으로 만들어야 한다.
+      # 대가는 감시 도구가 DB 전권을 갖는다는 것이다.
+      MYSQLD_EXPORTER_USER: ${DB_EXPORTER_USER}
 
   # Valkey 가 RESP 호환이라 이름이 redis 여도 그대로 붙는다.
   redis-exporter:
